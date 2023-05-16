@@ -5,39 +5,107 @@ on [DataTalksClub/mlops-zoomcamp](https://github.com/DataTalksClub/mlops-zoomcam
 
 ## 1.1 Introduction
 
-[Youtube](https://www.youtube.com/watch?v=s0uaFZSzwfI&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK).
+:movie_camera: [Youtube](https://www.youtube.com/watch?v=s0uaFZSzwfI&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=2).
+
+MLOps stands for Machine Learning Operations. MLOps is a core function of Machine Learning engineering, focused on streamlining the process 
+of taking machine learning models to production, and then maintaining and monitoring them. See 
+[What is MLOps?](https://www.databricks.com/glossary/mlops) from Databricks for more.
+
+![MLOps](images/mlops-loop-en.jpg "Iterative-Incremental Process in MLOps")
+
+See also [Machine Learning Operations](https://ml-ops.org/) from INNOQ.
 
 ## 1.2 Environment preparation (Linux/macOS)
 
-[Youtube](https://www.youtube.com/watch?v=IXSiYkP23zo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=3).
+:movie_camera: [Youtube](https://www.youtube.com/watch?v=IXSiYkP23zo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=3).
 
-### Create AWS EC2 instance (00:45)
+In this section, we will learn how to prepare our environment in AWS.
 
-* Create a new account on AWS Console
-* Go to EC2 et create a new instance `mlops-zoomcamp` with Ubuntu (x86), t2.xlarge.
-* Create key pair (RSA type and `.pem` file format), and download this key to our local `~/.ssh/` folder as `~/.ssh/razer.pem`.
-* Select 30 GiB 
-* Launch instance
+### Create AWS account
 
-See also:
+Go to [AWS Management Console](https://aws.amazon.com/console/), click on **Create an AWS Account** and follow steps.
 
-* [Setup Jupyter Notebook on Azure via SSH using Linux](https://github.com/josepholaide/MLOps-Practice/blob/main/Week%201/README.md)
+Select your **Default Region** (mine is `Canada (Central) ca-central-1`).
 
-### Connect local machine to the EC2 instance (03:27)
+### Create AWS EC2 instance
 
-Connect to this instance with this command. 
+> [00:45](https://www.youtube.com/watch?v=IXSiYkP23zo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=3&t=45s) Create EC2 Instance
+
+From your **AWS Console**, select **EC2** and then click on **Launch instance**.
+
+Create a new instance `mlops-zoomcamp` with **Ubuntu**, **64-bit (x86)** architecture,
+
+![MLOps](images/s01.png)
+
+![MLOps](images/s02.png)
+
+Select **t2.xlarge** instance type.
+
+![MLOps](images/s03.png)
+
+Click on **Create new key pair**.
+
+![MLOps](images/s04.png)
+
+Name the key pair (mine is `razer`), select **RSA** key pair type and **`.pem`** private key file format.
+
+Click on **Create key pair** button, than move the downloaded `razer.pem`  file to the `~/.ssh` folder.
+
+Increase **Configure storage** to 30 Gb
+
+![MLOps](images/s05.png)
+
+Finally, click the **Launch instance** button.
+
+You should see something like this.
+
+![MLOps](images/s06.png)
+
+Take note of the public IP address (mine is `3.99.223.16`).
+
+### Connect local machine to the EC2 instance
+
+> [03:27](https://www.youtube.com/watch?v=IXSiYkP23zo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=3&t=207s) Connect local machine to the EC2 instance
+
+Connect to this instance with this command.
+Don't forget to replace the public IP with your own (mine is `3.99.223.16`).
 
 ```bash
-ssh -i ~/.ssh/razer.pem ubuntu@34.248.245.41
+ssh -i ~/.ssh/razer.pem ubuntu@3.99.223.16 
 ```
 
-You don't need to run this command every time. Just create a config file `~/.ssh/config` like this.
+I'm getting the **unprotected private key file** error.
+
+![MLOps](images/s07.png)
+
+In this [page](https://99robots.com/how-to-fix-permission-error-ssh-amazon-ec2-instance/), 
+we learn how to fix this error. Basically, you need to change the file permissions of the key file.
+
+```bash
+chmod 400 ~/.ssh/razer.pem 
+```
+
+Run the ssh command again and you should get this.
+
+```bash
+ssh -i ~/.ssh/razer.pem ubuntu@3.99.223.16 
+```
+
+![MLOps](images/s08.png)
+
+We are now connected to the remote service.
+
+Enter `logout` to close the connection.
+
+> [03:59](https://www.youtube.com/watch?v=IXSiYkP23zo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=3&t=239s) Give alias to Host
+
+You don't need to run the previous command every time. Just create a config file `~/.ssh/config` like this.
 
 ```bash
 Host mlops-zoomcamp
-    HostName 34.248.245.41
+    HostName 3.99.223.16
     User ubuntu
-    IdentityFile c:/Users/alexe/.ssh/razer.pem
+    IdentityFile ~/.ssh/razer.pem
     StrictHostKeyChecking no
 ```
 
@@ -49,11 +117,16 @@ Now, we can connect to our instance with this command.
 ssh mlops-zoomcamp
 ```
 
-See also:
+The next page explains how to always keep the same IP address.
+See [Reserve External Static Address](https://github.com/syahrulhamdani/dtc-mlops/blob/main/week-1-introduction/README.md#reserve-external-static-address) 
+from [Syahrul Bahar Hamdani](https://github.com/syahrulhamdani).
 
-* [Reserve External Static Address](https://github.com/syahrulhamdani/dtc-mlops/blob/main/week-1-introduction/README.md#reserve-external-static-address) from [Syahrul Bahar Hamdani](https://github.com/syahrulhamdani).
+### Install Anaconda
 
-### Install Anaconda (05:25)
+> [05:25](https://www.youtube.com/watch?v=IXSiYkP23zo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=3&t=325s) Install Anaconda
+
+We do not have anything on this remote instance. 
+We now need to install some packages.
 
 Go to https://www.anaconda.com/download/ to get the latest version of Anaconda.
 Copy the link for **Linux 64-Bit (x86) Installer**.
@@ -64,26 +137,20 @@ wget https://repo.anaconda.com/archive/Anaconda3-2022.05-Linux-x86_64.sh
 bash Anaconda3-2022.05-Linux-x86_64.sh
 ```
 
-Update existing packages.
-It's a good idea to run this command often, once per day or every few days, to keep your VM up to date.
+Installation takes some time.
+
+### Install Docker on Linux
+
+> [06:40](https://www.youtube.com/watch?v=IXSiYkP23zo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=3&t=400s) Install Docker and Docker-Compose
+
+Open a new terminal window, connect to your remote instance again and install docker.
 
 ```bash
-sudo apt update && sudo apt -y upgrade
-```
-
-See also:
-
-* [Conda Cheat sheet](https://gist.github.com/ziritrion/8024025672ea92b8bdeb320d6015aa0d#conda) from [Alvaro Navas](https://gist.github.com/ziritrion).
-* [Conda Cheat sheet](https://docs.conda.io/projects/conda/en/4.6.0/_downloads/52a95608c49671267e40c689e0bc00ca/conda-cheatsheet.pdf)
-
-
-### Install Docker on Linux (06:40)
-
-Install Docker on Ubuntu.
-
-```bash
+sudo apt update 
 sudo apt install docker.io
 ```
+
+In addition to Docker, we also will need Docker Compose. 
 
 Install Docker Compose in a separate directory on our instance.
 Go to https://github.com/docker/compose/releases and copy the link of `docker-compose-linux-x86_64`.
@@ -95,7 +162,9 @@ wget https://github.com/docker/compose/releases/download/v2.17.3/docker-compose-
 chmod +x docker-compose
 ```
 
-### Modify Path Variable (08:13)
+### Modify Path Variable
+
+> [08:13](https://www.youtube.com/watch?v=IXSiYkP23zo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=3&t=493s) Modify Path Variable
 
 Add the soft directory to PATH. Open the `.bashrc` file with `nano ~/.bashrc`
 and add the following line:
@@ -104,81 +173,101 @@ and add the following line:
 export PATH="${HOME}/soft:${PATH}"
 ```
 
-Save it (`Ctrl+O` to save and `Ctrl+X` to exit) and run the following command to make sure the changes are applied.
+![MLOps](images/s09.png)
+
+Save it (`Ctrl+O` to save and `Ctrl+X` to exit) and run the following commands to make sure the changes are applied.
 
 ```bash
+cd 
 source .bashrc
 which docker-compose
 # /home/ubuntu/soft/docker-compose
 ```
 
-### Add user to the Docker group (09:00)
+### Add user to the Docker group
 
-Run Docker.
+> [09:00](https://www.youtube.com/watch?v=IXSiYkP23zo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=3&t=540s) Add user to the docker group
+
+We need to add our user to docker group.
 
 ```bash
-sudo docker run hello-world
-
-# To run docker without sudo:
-sudo groupadd docker
 sudo usermod -aG docker $USER
+```
 
-# Log out and log back in so that your group membership is re-evaluated.
-logout
-ssh mlops-zoomcamp
+Log out (with `logout` command) and log back (with `ssh mlops-zoomcamp` command) 
+in so that your group membership is re-evaluated.
+
+Run the following command and docker should work fine.
+
+```bash
 docker run hello-world
 ```
 
-### Init Anaconda (10:03)
+### Init Anaconda
+
+> [10:03](https://www.youtube.com/watch?v=IXSiYkP23zo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=3&t=603s) Init Anaconda
 
 Once Anaconda has finished its installation, we must initialize it.
+Answer `yes` to the question `Do you wish the installer to initialize Anaconda3 by running conda init?`.
 
-We need also log out and log back before
+We need also log out (with `logout` command) and log back (with `ssh mlops-zoomcamp` command) before
 check where Python is installed and see what Anaconda has changed.
 
 ```bash
-logout
-ssh mlops-zoomcamp
 which python
 # /home/ubuntu/anaconda3/bin/python
 python
-# Python 3.9.7
+# Python 3.9.12 (main, Apr  5 2022, 06:56:58) 
+# [GCC 7.5.0] :: Anaconda, Inc. on linux
+# Type "help", "copyright", "credits" or "license" for more information.
+# >>> 
 less .bashrc
 ```
 
-See also:
+### Clone mlops-zoomcamp GitHub repo
 
-* [Docker](https://www.docker.com/)
-* [Docker Compose](https://docs.docker.com/compose/).
-* [Docker & Docker Compose](https://gist.github.com/ziritrion/3214aa570e15ae09bf72c4587cb9d686#docker) from [Alvaro Navas](https://gist.github.com/ziritrion)
-* [Manage Docker as a non-root user](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user)
-* [Overview of nano's shortcuts](https://www.nano-editor.org/dist/latest/cheatsheet.html)
+> [10:50](https://www.youtube.com/watch?v=IXSiYkP23zo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=3&t=650s) Clone mlops-zoomcamp GitHub repo
 
-### Clone mlops-zoomcamp GitHub repo (10:50)
+Now, we will clone the repo of the course.
 
 ```bash
 git clone https://github.com/DataTalksClub/mlops-zoomcamp.git
 cd mlops-zoomcamp
 ```
 
-### Connect VS code with remote machine (11:48)
+### Connect VS code with remote machine
+
+> [11:48](https://www.youtube.com/watch?v=IXSiYkP23zo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=3&t=708s) connect VS code with remote machine
+
+Now, we want access to this remote computer from our Visual Studio Code (VS Code).
 
 Open VS Code from your local machine. 
 In VS Code, find and install the **Remote - SSH** extension. 
 Then go to the **Command Palette** (`Shift+Cmd+P`) and select **Remote-SSH: Connect to Host…**​ and `mlops-zoomcamp`.
 
+We should see this.
+
+![MLOps](images/s10.png)
+
 ### Use Jupyter Notebook from remote machine (13:10)
+
+> [13:10](https://www.youtube.com/watch?v=IXSiYkP23zo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=3&t=790s) Use Jupyter Notebook from remote machine
 
 On the remote instance, run the following commands.
 
 ```bash
-cd ~
+cd
 mkdir notebooks
-cd notebooks/
 jupyter notebook
 ```
 
 In VS Code, open terminal, select **PORTS**, open the port `8888`
+
+![MLOps](images/s11.png)
+
+Now, if we go to http://localhost:8888/tree, we should see that jupyter notebook is alive.
+
+![MLOps](images/s12.png)
 
 ### Additional materials
 
@@ -303,17 +392,17 @@ jupyter notebook
 
 1. If you use a client like [https://cyberduck.io/](Cyberduck), you can connect with SFTP to your instance using the `instance.zone.project` name as server, and adding the generated private ssh key.
 
-See also :
-
-* [How to Use SCP Command to Securely Transfer Files](https://linuxize.com/post/how-to-use-scp-command-to-securely-transfer-files/)
+See also [How to Use SCP Command to Securely Transfer Files](https://linuxize.com/post/how-to-use-scp-command-to-securely-transfer-files/)
 
 ## 1.3 Reading Parquet files instead of CSV
 
-[Youtube](https://www.youtube.com/watch?v=r94QjpX9vSE&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=4).
+:movie_camera: [Youtube](https://www.youtube.com/watch?v=r94QjpX9vSE&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=4).
+
+### Intro and the change in the dataset
 
 We will use [TLC Trip Record Data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page).
 
-We need to install missing dependency.
+In jupyter notebook running on the remote instance, we need to install missing dependency on the remote instance.
 
 ```python
 !pip install pyarrow
@@ -324,21 +413,25 @@ Below, the code to read a parquet file.
 ```python
 import pandas as pd
 
-!wget https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2021-01.parquet
+!wget -P data https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2021-01.parquet
 
-df = pd.read_parquet("/content/yellow_tripdata_2021-01.parquet")
+df = pd.read_parquet("./data/yellow_tripdata_2021-01.parquet")
 df.dtypes
 ```
 
+We should see this.
+
+![MLOps](images/s13.png)
+
 ## 1.3 (Optional) Training a ride duration prediction model
 
-[Youtube](https://www.youtube.com/watch?v=iRunifGSHFc&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=5).
+:movie_camera: [Youtube](https://www.youtube.com/watch?v=iRunifGSHFc&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=5).
 
-See [duration-prediction.ipynb](https://github.com/syahrulhamdani/dtc-mlops/blob/main/week-1-introduction/duration-prediction.ipynb)
+See [duration-prediction.ipynb](notebooks/duration-prediction.ipynb).
 
 ## 1.4 Course overview
 
-[Youtube](https://www.youtube.com/watch?v=teP9KWkP6SM&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=6).
+:movie_camera: [Youtube](https://www.youtube.com/watch?v=teP9KWkP6SM&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=6).
 
 **Experiment Tracking** is the process of managing all the different experiments and their components, 
 such as parameters, metrics, models and other artifacts and it enables us to:
@@ -359,13 +452,16 @@ See also:
 * [MLflow Model Registry](https://mlflow.org/docs/latest/model-registry.html)
 * [ML Model Registry: What It Is, Why It Matters, How to Implement It](https://neptune.ai/blog/ml-model-registry)
 * [ML Pipelines](https://www.databricks.com/glossary/what-are-ml-pipelines) from Databricks
+* [MyMLOps](https://mymlops.com/builder)
 
 ## 1.5 MLOps maturity model
 
-[Youtube](https://www.youtube.com/watch?v=XwTH8BDGzYk&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=7).
+:movie_camera: [Youtube](https://www.youtube.com/watch?v=XwTH8BDGzYk&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=7).
 
 See [MLOps Maturity model](https://docs.microsoft.com/en-us/azure/architecture/example-scenario/mlops/mlops-maturity-model).
 
 ## 1.6 Homework
+
+:movie_camera: [Youtube](https://www.youtube.com/watch?v=feH1PMLyu-Q&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=10).
 
 See https://github.com/syahrulhamdani/dtc-mlops/blob/main/week-1-introduction/homework.ipynb
