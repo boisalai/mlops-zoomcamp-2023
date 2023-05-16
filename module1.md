@@ -460,10 +460,3 @@ See [MLOps Maturity model](https://docs.microsoft.com/en-us/azure/architecture/e
 ## 1.6 Homework
 
 See [questions](https://github.com/DataTalksClub/mlops-zoomcamp/blob/main/cohorts/2023/01-intro/homework.md).
-
-Q1 = 19
-Q2 = 46.45
-Q3 = 98% 
-Q4 = 515
-Q5= 6.99
-Q6 = 7.79
