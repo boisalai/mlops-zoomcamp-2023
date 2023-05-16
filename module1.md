@@ -436,11 +436,8 @@ See [duration-prediction.ipynb](notebooks/duration-prediction.ipynb).
 **Experiment Tracking** is the process of managing all the different experiments and their components, 
 such as parameters, metrics, models and other artifacts and it enables us to:
 
-* **Organize** all the necessary components of a specific experiment. It's important to have everything in one place and know where it is so you can use them later.
-* **Reproduce** past results (easily) using saved experiments.
-* **Log** iterative improvements across time, data, ideas, teams, etc.
-
-A **Model Registry**  is a centralized model store, set of APIs, and UI, to collaboratively manage the full lifecycle of an Model.
+A **Model Registry**  is a centralized model store, set of APIs, and UI, to 
+collaboratively manage the full lifecycle of an Model.
 
 One definition of an **ML pipeline** is a means of automating the machine learning workflow by enabling data to be transformed and
 correlated into a model that can then be analyzed to achieve outputs. This type of ML pipeline makes the process of inputting data
@@ -462,6 +459,11 @@ See [MLOps Maturity model](https://docs.microsoft.com/en-us/azure/architecture/e
 
 ## 1.6 Homework
 
-:movie_camera: [Youtube](https://www.youtube.com/watch?v=feH1PMLyu-Q&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=10).
+See [questions](https://github.com/DataTalksClub/mlops-zoomcamp/blob/main/cohorts/2023/01-intro/homework.md).
 
-See https://github.com/syahrulhamdani/dtc-mlops/blob/main/week-1-introduction/homework.ipynb
+Q1 = 19
+Q2 = 46.45
+Q3 = 98% 
+Q4 = 515
+Q5= 6.99
+Q6 = 7.79
