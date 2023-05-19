@@ -197,6 +197,14 @@ sudo usermod -aG docker $USER
 Log out (with `logout` command) and log back (with `ssh mlops-zoomcamp` command) 
 in so that your group membership is re-evaluated.
 
+### Provide read write permission to docker.sock file
+
+The below will fix the error, docker: Got permission denied while trying to connect to the Docker daemon socket
+
+```bash
+sudo chmod 666 /var/run/docker.sock
+```
+
 Run the following command and docker should work fine.
 
 ```bash
