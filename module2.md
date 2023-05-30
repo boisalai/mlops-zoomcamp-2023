@@ -658,7 +658,7 @@ Now, we want to train the model using the parameters that we obtained, save the 
 
 We use `mlflow.xgboost.autolog()` to automaticaly logs the default parameters, metrics and model.
 
-See [Automatic Logging](https://mlflow.org/docs/latest/tracking.html#automatic-logging) for more inforaation.
+See [Automatic Logging](https://mlflow.org/docs/latest/tracking.html#automatic-logging) for more information.
 
 Use the Python context manager `with` statement to start the experiment un by calling `mlflow.start_run`.
 

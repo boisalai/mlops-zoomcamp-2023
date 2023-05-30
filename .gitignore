@@ -1,0 +1,4 @@
+notebooks/__pycache__/
+notebooks/output/
+notebooks/mlruns/
+notebooks/mlartifacts/
