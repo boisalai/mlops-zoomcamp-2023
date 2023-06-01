@@ -1,9 +1,8 @@
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
-
-*/__pycache__/*
-*/mlartifacts/*
-*/mlruns/*
-*/output/*
-*/wandb/*
-*/mlflow.db
+__pycache__/
+mlartifacts/
+mlruns/
+output/
+wandb/
+mlflow.db
