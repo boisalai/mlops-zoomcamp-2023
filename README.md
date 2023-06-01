@@ -12,6 +12,7 @@ Syllabus
 * [Module 2](module2.md): Experiment tracking and model management (MLFlow)
     * [MLOps Zoomcamp - Experiment Tracking with Weights and Biases - Soumik Rakshit](https://www.youtube.com/watch?v=yNyqFMwEyL4)
     * [mlops-zoomcamp-wandb](https://github.com/soumik12345/mlops-zoomcamp-wandb)
+    * [My notes](wandb.md)
 * Module 3: Orchestration and ML Pipelines (Prefect, Kubeflow)
 * Module 4: Model Deployment (Flask, AWS Kinesis, AWS Lambda)
 * Module 5: Model Monitoring (Prometheus, Evidently, and Grafana)
