@@ -1,6 +1,6 @@
 notebooks/__pycache__/
-notebooks/output/
-notebooks/mlruns/
 notebooks/mlartifacts/
+notebooks/mlruns/
+notebooks/output/
 notebooks/foo.adoc
-wandb.md
+mlflow.db

@@ -1,0 +1,39 @@
+{
+    "os": "macOS-13.3.1-arm64-i386-64bit",
+    "python": "3.9.16",
+    "heartbeatAt": "2023-06-01T15:17:17.127294",
+    "startedAt": "2023-06-01T15:17:16.465886",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--wandb_project",
+        "homework-wandb",
+        "--wandb_entity",
+        "boisalai",
+        "--raw_data_path",
+        "/Users/boisalai/data",
+        "--dest_path",
+        "output"
+    ],
+    "state": "running",
+    "program": "/Users/boisalai/GitHub/mlops-zoomcamp-2023/notebooks/wandb/preprocess_data.py",
+    "codePath": "notebooks/wandb/preprocess_data.py",
+    "git": {
+        "remote": "git@github.com:boisalai/mlops-zoomcamp-2023.git",
+        "commit": "58473340ef39f1b7b9c2e39d0cd712cf0f1180bd"
+    },
+    "email": "ay.boisvert@gmail.com",
+    "root": "/Users/boisalai/GitHub/mlops-zoomcamp-2023",
+    "host": "MacBook-Pro.local",
+    "username": "boisalai",
+    "executable": "/Users/boisalai/miniconda3/envs/mlops-zoomcamp-env/bin/python",
+    "cpu_count": 10,
+    "cpu_count_logical": 10,
+    "disk": {
+        "total": 926.3517189025879,
+        "used": 11.049564361572266
+    },
+    "memory": {
+        "total": 16.0
+    }
+}

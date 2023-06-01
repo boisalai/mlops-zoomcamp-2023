@@ -1,0 +1,35 @@
+2023-06-01 11:39:20,293 INFO    Thread-79 :18093 [wandb_setup.py:_flush():76] Current SDK version is 0.15.3
+2023-06-01 11:39:20,293 INFO    Thread-79 :18093 [wandb_setup.py:_flush():76] Configure stats pid to 18093
+2023-06-01 11:39:20,293 INFO    Thread-79 :18093 [wandb_setup.py:_flush():76] Loading settings from /Users/boisalai/.config/wandb/settings
+2023-06-01 11:39:20,293 INFO    Thread-79 :18093 [wandb_setup.py:_flush():76] Loading settings from /Users/boisalai/GitHub/mlops-zoomcamp-2023/notebooks/wandb/wandb/settings
+2023-06-01 11:39:20,293 WARNING Thread-79 :18093 [wandb_setup.py:_flush():76] Unknown environment variable: WANDB_KEY
+2023-06-01 11:39:20,293 INFO    Thread-79 :18093 [wandb_setup.py:_flush():76] Loading settings from environment variables: {'api_key': '***REDACTED***', 'entity': 'boisalai', 'project': 'homework-wandb', 'root_dir': '/Users/boisalai/GitHub/mlops-zoomcamp-2023/notebooks/wandb', 'run_id': 'hod4mr5f', 'sweep_param_path': '/Users/boisalai/GitHub/mlops-zoomcamp-2023/notebooks/wandb/wandb/sweep-bnzckj1c/config-hod4mr5f.yaml', 'sweep_id': 'bnzckj1c'}
+2023-06-01 11:39:20,293 INFO    Thread-79 :18093 [wandb_setup.py:_flush():76] Applying setup settings: {'_disable_service': False}
+2023-06-01 11:39:20,293 INFO    Thread-79 :18093 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': 'notebooks/wandb/sweep.py', 'program': '/Users/boisalai/GitHub/mlops-zoomcamp-2023/notebooks/wandb/sweep.py'}
+2023-06-01 11:39:20,293 INFO    Thread-79 :18093 [wandb_init.py:_log_setup():507] Logging user logs to /Users/boisalai/GitHub/mlops-zoomcamp-2023/notebooks/wandb/wandb/run-20230601_113920-hod4mr5f/logs/debug.log
+2023-06-01 11:39:20,293 INFO    Thread-79 :18093 [wandb_init.py:_log_setup():508] Logging internal logs to /Users/boisalai/GitHub/mlops-zoomcamp-2023/notebooks/wandb/wandb/run-20230601_113920-hod4mr5f/logs/debug-internal.log
+2023-06-01 11:39:20,293 INFO    Thread-79 :18093 [wandb_init.py:init():547] calling init triggers
+2023-06-01 11:39:20,293 INFO    Thread-79 :18093 [wandb_init.py:init():554] wandb.init called with sweep_config: {'max_depth': 1, 'min_samples_leaf': 3, 'min_samples_split': 2, 'n_estimators': 38}
+config: {}
+2023-06-01 11:39:20,293 INFO    Thread-79 :18093 [wandb_init.py:init():596] starting backend
+2023-06-01 11:39:20,293 INFO    Thread-79 :18093 [wandb_init.py:init():600] setting up manager
+2023-06-01 11:39:20,295 INFO    Thread-79 :18093 [backend.py:_multiprocessing_setup():106] multiprocessing start_methods=spawn,fork,forkserver, using: spawn
+2023-06-01 11:39:20,297 INFO    Thread-79 :18093 [wandb_init.py:init():606] backend started and connected
+2023-06-01 11:39:20,299 INFO    Thread-79 :18093 [wandb_run.py:_config_callback():1286] config_cb None None {'max_depth': 1, 'min_samples_leaf': 3, 'min_samples_split': 2, 'n_estimators': 38}
+2023-06-01 11:39:20,300 INFO    Thread-79 :18093 [wandb_init.py:init():700] updated telemetry
+2023-06-01 11:39:20,309 INFO    Thread-79 :18093 [wandb_init.py:init():737] communicating run to backend with 60.0 second timeout
+2023-06-01 11:39:20,554 INFO    Thread-79 :18093 [wandb_run.py:_on_init():2177] communicating current version
+2023-06-01 11:39:20,681 INFO    Thread-79 :18093 [wandb_run.py:_on_init():2186] got version response 
+2023-06-01 11:39:20,681 INFO    Thread-79 :18093 [wandb_init.py:init():787] starting run threads in backend
+2023-06-01 11:39:21,971 INFO    Thread-79 :18093 [wandb_run.py:_console_start():2158] atexit reg
+2023-06-01 11:39:21,971 INFO    Thread-79 :18093 [wandb_run.py:_redirect():2013] redirect: SettingsConsole.WRAP_RAW
+2023-06-01 11:39:21,971 INFO    Thread-79 :18093 [wandb_run.py:_redirect():2078] Wrapping output streams.
+2023-06-01 11:39:21,971 INFO    Thread-79 :18093 [wandb_run.py:_redirect():2103] Redirects installed.
+2023-06-01 11:39:21,971 INFO    Thread-79 :18093 [wandb_init.py:init():829] run started, returning control to user process
+2023-06-01 11:39:23,211 INFO    Thread-79 :18093 [wandb_run.py:_finish():1893] finishing run boisalai/homework-wandb/hod4mr5f
+2023-06-01 11:39:23,211 INFO    Thread-79 :18093 [wandb_run.py:_atexit_cleanup():2127] got exitcode: 0
+2023-06-01 11:39:23,211 INFO    Thread-79 :18093 [wandb_run.py:_restore():2110] restore
+2023-06-01 11:39:23,211 INFO    Thread-79 :18093 [wandb_run.py:_restore():2116] restore done
+2023-06-01 11:39:29,450 INFO    Thread-79 :18093 [wandb_run.py:_footer_history_summary_info():3469] rendering history
+2023-06-01 11:39:29,450 INFO    Thread-79 :18093 [wandb_run.py:_footer_history_summary_info():3501] rendering summary
+2023-06-01 11:39:29,452 INFO    Thread-79 :18093 [wandb_run.py:_footer_sync_info():3428] logging synced files

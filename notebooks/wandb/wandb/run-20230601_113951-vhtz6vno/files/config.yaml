@@ -1,0 +1,41 @@
+wandb_version: 1
+
+max_depth:
+  desc: null
+  value: 16
+min_samples_leaf:
+  desc: null
+  value: 1
+min_samples_split:
+  desc: null
+  value: 10
+n_estimators:
+  desc: null
+  value: 15
+_wandb:
+  desc: null
+  value:
+    python_version: 3.9.16
+    cli_version: 0.15.3
+    framework: sklearn
+    is_jupyter_run: false
+    is_kaggle_kernel: true
+    start_time: 1685633991.507172
+    t:
+      1:
+      - 5
+      - 53
+      - 55
+      2:
+      - 5
+      - 53
+      - 55
+      3:
+      - 2
+      - 23
+      - 37
+      4: 3.9.16
+      5: 0.15.3
+      8:
+      - 2
+      - 5
