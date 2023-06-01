@@ -6,3 +6,4 @@ mlruns/
 output/
 wandb/
 mlflow.db
+*.pkl
