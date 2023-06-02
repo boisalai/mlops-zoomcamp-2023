@@ -69,21 +69,18 @@ Source: https://docs.prefect.io/2.10.12/
 
 Prefect provides tools for working with comple systems so you can stop wondering about your workflows.
 
-
-
-
-
 ## 3.2 Introduction to Prefect
 
 :movie_camera: [Youtube](https://www.youtube.com/watch?v=rTUBTvXvXvM&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=17).
 
 Key Takeaways:
-- The video is about Prefect and its various components.
-- The video will provide an overview of Prefect terminology and show how to configure a local database.
-- The process of setting up the environment and running scripts on the Prefect server will be demonstrated.
-- The video will also show how to use retry logic and the workflow UI.
-- Flow runs and logs in Prefect will be reviewed towards the end of the video.
-- The video is suitable for those interested in learning more about Prefect and its capabilities.
+
+* The video is about Prefect and its various components.
+* The video will provide an overview of Prefect terminology and show how to configure a local database.
+* The process of setting up the environment and running scripts on the Prefect server will be demonstrated.
+* The video will also show how to use retry logic and the workflow UI.
+* Flow runs and logs in Prefect will be reviewed towards the end of the video.
+* The video is suitable for those interested in learning more about Prefect and its capabilities.
 
 ### Introduction to Prefect and its components
 
@@ -100,28 +97,258 @@ Goals:
 * Run a Prefect flow
 * Checkout Prefect UI
 
+Why use Prefect? Flexible, open-source Python framwork to turn standard pipelines into fault-tolerant dataflows.
 
+Installation? See https://docs.prefect.io/latest/getting-started/installation/
 
+Prefect is published as a Python package. To install the latest Prefect release, run the following in a shell or terminal session:
+
+```bash
+pip install -U prefect
+```
 
 ### Overview of Prefect terminology and local database configuration
 
-> [02:42](https://www.youtube.com/watch?v=rTUBTvXvXvM&t=162s) - Overview of Prefect terminology and local database configuration.
+> [02:27](https://www.youtube.com/watch?v=rTUBTvXvXvM&t=147s) - Overview of Prefect terminology and local database configuration.
+
+Self Hosting a Prefect Server
+
+* **Orchestration API** - Used by server to work with workflow metadata
+* **Database** - Stored workflow metadata
+* **UI** - Visualizes workflows
+* **Hosting a Prefect server** - See https://docs.prefect.io/latest/host/
+* **Task** - A discrete unit of work in a Prefect workflow. See https://docs.prefect.io/latest/concepts/tasks/
+* **Flow** - Container for workflow logic. See https://docs.prefect.io/latest/concepts/flows/
+* **Subflow** - Flow called by another flow. See https://docs.prefect.io/latest/concepts/flows/#composing-flows
+
+Below an example.
+
+```python
+from prefect import flow, task
+
+@task(name="Print Hello")
+def print_hello(name):
+    msg = f"Hello {name}!"
+    print(msg)
+    return msg
+
+@flow(name="Subflow")
+def my_subflow(msg):
+    print(f"Subflow says: {msg}")
+
+@flow(name="Hello Flow")
+def hello_world(name="world"):
+    message = print_hello(name)
+    my_subflow(message)
+
+hello_world("Marvin")
+```
 
 ### Setting up environment and running scripts on Prefect server
 
 > [05:30](https://www.youtube.com/watch?v=rTUBTvXvXvM&t=330s) - Setting up environment and running scripts on Prefect server.
 
+Create a conda environment.
+
+```bash
+mkdir mlops
+cd mlops
+# conda create -n prefect-ops python=3.9.12
+# conda activate prefect-ops
+# How to Manage Conda Environments on an Apple Silicon M1 Mac
+# See https://towardsdatascience.com/how-to-manage-conda-environments-on-an-apple-silicon-m1-mac-1e29cb3bad12
+create_x86_conda_environment prefect-ops python=3.9.12
+python -V
+```
+
+You should see this.
+
+```txt
+Python 3.9.12
+```
+
+Install GitHub repo and packages.
+
+```bash
+git clone https://github.com/discdiver/prefect-mlops-zoomcamp.git
+cd prefect-mlops-zoomcamp
+pip install -r requirements.txt
+prefect version
+```
+
+You should see this.
+
+```txt
+Version:             2.10.8
+API version:         0.8.4
+Python version:      3.9.12
+Git commit:          79093235
+Built:               Mon, May 8, 2023 12:23 PM
+OS/Arch:             darwin/x86_64
+Profile:             default
+Server type:         server
+```
+
+Start Prefect server.
+
+```bash
+prefect server start
+```
+
+You should see this.
+
+```txt
+ ___ ___ ___ ___ ___ ___ _____ 
+| _ \ _ \ __| __| __/ __|_   _| 
+|  _/   / _|| _|| _| (__  | |  
+|_| |_|_\___|_| |___\___| |_|  
+
+Configure Prefect to communicate with the server with:
+
+    prefect config set PREFECT_API_URL=http://127.0.0.1:4200/api
+
+View the API reference documentation at http://127.0.0.1:4200/docs
+
+Check out the dashboard at http://127.0.0.1:4200
+```
+
+Open another terminal window and run the following commands to set the Prefect API URL.
+
+```bash
+cd mlops/prefect-mlops-zoomcamp
+conda activate prefect-ops
+prefect config set PREFECT_API_URL=http://127.0.0.1:4200/api
+```
+
+You should see this.
+
+```txt
+Set 'PREFECT_API_URL' to 'http://127.0.0.1:4200/api'.
+Updated profile 'default'.
+```
+
+
 ### Demo of retry logic & workflow UI in action
 
-> [10:39](https://www.youtube.com/watch?v=rTUBTvXvXvM&t=639s) - Demo of retry logic & workflow UI in action.
+> [9:50](https://www.youtube.com/watch?v=rTUBTvXvXvM&t=590s) - Demo of retry logic & workflow UI in action.
 
-### Review of flow runs and logs in Prefect
+Go to the `mlops/prefect-mlops-zoomcamp/3.2` folder.
 
-> [13:55](https://www.youtube.com/watch?v=rTUBTvXvXvM&t=835s) - Review of flow runs and logs in Prefect.
+```bash
+cd mlops/prefect-mlops-zoomcamp/3.2
+ls
+```
+
+There are two Python scripts `cat_facts.py` and `cat_dog_facts.py` in this folder.
+Below, the first one (`cat_facts.py`).
+
+```python
+import httpx
+from prefect import flow, task
 
 
+@task(retries=4, retry_delay_seconds=0.1, log_prints=True)
+def fetch_cat_fact():
+    cat_fact = httpx.get("https://f3-vyx5c2hfpq-ue.a.run.app/")
+    # An endpoint that is designed to fail sporadically
+    if cat_fact.status_code >= 400:
+        raise Exception()
+    print(cat_fact.text)
 
 
+@flow
+def fetch():
+    fetch_cat_fact()
+
+
+if __name__ == "__main__":
+    fetch()
+```
+
+This script calls an API to retreive cats. The function calling the API has been decorated with a task decorator
+which has been configured with some arguments.
+
+* Prefect will retry the task upo to 4 times if the task were to fail for some reason.
+* Between each retry, Prefect will wait for a short period of time before trying to run the task again.
+* Lastly, any print statements that are made within this task will be shared within the logs whenever this script is run.
+
+Run this script with the following commands.
+
+```bash
+cd mlops/prefect-mlops-zoomcamp/3.2
+conda activate prefect-ops
+python cat_facts.py
+```
+
+You should see this in the terminal and in the Prefect dashboard at http://127.0.0.1:4200.
+
+On the left, we see that the flow encountered an exception during the execution.
+On the right, we see a timeline of the flow run and the logs that were produced down at the bottom.
+
+<table>
+    <tr>
+        <td>
+            <img src="images\s57.png">
+        </td>
+        <td>
+            <img src="images\s58.png">
+        </td>
+    </tr>
+</table>
+
+Let's try running the other script in the folder.
+
+Below, the `cat_dog_facts.py` code.
+
+```python
+import httpx
+from prefect import flow
+
+@flow
+def fetch_cat_fact():
+    '''A flow that gets a cat fact'''
+    return httpx.get("https://catfact.ninja/fact?max_length=140").json()["fact"]
+
+@flow
+def fetch_dog_fact():
+    '''A flow that gets a dog fact'''
+    return httpx.get(
+        "https://dogapi.dog/api/v2/facts",
+        headers={"accept": "application/json"},
+    ).json()["data"][0]["attributes"]["body"]
+
+@flow(log_prints=True)
+def animal_facts():
+    cat_fact = fetch_cat_fact()
+    dog_fact = fetch_dog_fact()
+    print(f"🐱: {cat_fact} \n🐶: {dog_fact}")
+
+if __name__ == "__main__":
+    animal_facts()
+```
+
+We have a parent flow at the bottom which calls the `dog_fact` flow and `cat_fact` flow.
+Run this script with the following commands and see what happens.
+
+```bash
+cd mlops/prefect-mlops-zoomcamp/3.2
+conda activate prefect-ops
+python cat_dog_facts.py
+```
+
+You should see three new flow run records (`animal-facts`, `fetch-cat-fact`, `fetch-dog-fact`) that's because we had three flows in the script.
+Let's take a look at the record for the parent flow called `animal-facts`.
+
+<table>
+    <tr>
+        <td>
+            <img src="images\s59.png">
+        </td>
+        <td>
+            <img src="images\s60.png">
+        </td>
+    </tr>
+</table>
 
 ## 3.3 Prefect Workflow
 
