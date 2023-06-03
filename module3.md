@@ -724,14 +724,6 @@ We have logging information in the terminal window and in the Prefect UI.
     </tr>
 </table>
 
-Finish by pushing 
-
-```bash
-git add .
-git commit -m "Push after module 3"
-git push -u origin main
-```
-
 ## 3.4 Deploying Your Workflow
 
 :movie_camera: [Youtube](https://www.youtube.com/watch?v=3YjagezFhOo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=19).
@@ -894,6 +886,14 @@ You should get something like this.
         </td>
     </tr>
 </table>
+
+Finish by pushing to our repo. 
+
+```bash
+git add .
+git commit -m "Push after 3.4 Deploying Your Workflow"
+git push -u origin main
+```
 
 ### Setting up deployment from GitHub for collaboration
 
