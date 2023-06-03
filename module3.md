@@ -167,10 +167,12 @@ You should see this.
 Python 3.9.12
 ```
 
-Install GitHub repo and packages.
+I recommend you to fork the `https://github.com/discdiver/prefect-mlops-zoomcamp.git` repository.
+
+Clone this forked repository and install packages.
 
 ```bash
-git clone https://github.com/discdiver/prefect-mlops-zoomcamp.git
+git clone git@github.com:boisalai/prefect-mlops-zoomcamp.git
 cd prefect-mlops-zoomcamp
 pip install -r requirements.txt
 prefect version
@@ -189,7 +191,7 @@ Profile:             default
 Server type:         server
 ```
 
-Start Prefect server.
+Start a local Prefect server by running the following.
 
 ```bash
 prefect server start
@@ -215,7 +217,6 @@ Check out the dashboard at http://127.0.0.1:4200
 Open another terminal window and run the following commands to set the Prefect API URL.
 
 ```bash
-cd mlops/prefect-mlops-zoomcamp
 conda activate prefect-ops
 prefect config set PREFECT_API_URL=http://127.0.0.1:4200/api
 ```
@@ -227,18 +228,11 @@ Set 'PREFECT_API_URL' to 'http://127.0.0.1:4200/api'.
 Updated profile 'default'.
 ```
 
-
 ### Demo of retry logic & workflow UI in action
 
 > [9:50](https://www.youtube.com/watch?v=rTUBTvXvXvM&t=590s) - Demo of retry logic & workflow UI in action.
 
-Go to the `mlops/prefect-mlops-zoomcamp/3.2` folder.
-
-```bash
-cd mlops/prefect-mlops-zoomcamp/3.2
-ls
-```
-
+Go to the `prefect-mlops-zoomcamp/3.2` folder.
 There are two Python scripts `cat_facts.py` and `cat_dog_facts.py` in this folder.
 Below, the first one (`cat_facts.py`).
 
@@ -272,10 +266,10 @@ which has been configured with some arguments.
 * Between each retry, Prefect will wait for a short period of time before trying to run the task again.
 * Lastly, any print statements that are made within this task will be shared within the logs whenever this script is run.
 
-Run this script with the following commands.
+Open a new terminal window, and run the `cat_facts.py` script with the following commands.
 
 ```bash
-cd mlops/prefect-mlops-zoomcamp/3.2
+cd prefect-mlops-zoomcamp/3.2
 conda activate prefect-ops
 python cat_facts.py
 ```
@@ -331,7 +325,7 @@ We have a parent flow at the bottom which calls the `dog_fact` flow and `cat_fac
 Run this script with the following commands and see what happens.
 
 ```bash
-cd mlops/prefect-mlops-zoomcamp/3.2
+cd prefect-mlops-zoomcamp/3.2
 conda activate prefect-ops
 python cat_dog_facts.py
 ```
@@ -371,102 +365,8 @@ Key Takeaways:
 
 we review the following two codes:
 
-* [duration_prediction_original.ipynb](https://github.com/discdiver/prefect-mlops-zoomcamp/blob/main/3.3/duration_prediction_original.ipynb).
-* [orchestrate_pre_prefect.py](https://github.com/discdiver/prefect-mlops-zoomcamp/blob/main/3.3/orchestrate_pre_prefect.py)
-
-Here `duration_prediction_original.ipynb`.
-
-
-```python
-!python -V
-# Python 3.9.12
-
-import pandas as pd
-import pickle
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-from sklearn.feature_extraction import DictVectorizer
-from sklearn.linear_model import LinearRegression
-from sklearn.linear_model import Lasso
-from sklearn.linear_model import Ridge
-from sklearn.metrics import mean_squared_error
-
-import mlflow
-
-
-mlflow.set_tracking_uri("sqlite:///mlflow.db")
-mlflow.set_experiment("nyc-taxi-experiment")
-
-def read_dataframe(filename):
-    df = pd.read_csv(filename)
-
-    df.lpep_dropoff_datetime = pd.to_datetime(df.lpep_dropoff_datetime)
-    df.lpep_pickup_datetime = pd.to_datetime(df.lpep_pickup_datetime)
-
-    df['duration'] = df.lpep_dropoff_datetime - df.lpep_pickup_datetime
-    df.duration = df.duration.apply(lambda td: td.total_seconds() / 60)
-
-    df = df[(df.duration >= 1) & (df.duration <= 60)]
-
-    categorical = ['PULocationID', 'DOLocationID']
-    df[categorical] = df[categorical].astype(str)
-    
-    return df
-
-df_train = read_dataframe('./data/green_tripdata_2021-01.csv')
-df_val = read_dataframe('./data/green_tripdata_2021-02.csv')
-
-len(df_train), len(df_val)
-# (73908, 61921)
-
-df_train['PU_DO'] = df_train['PULocationID'] + '_' + df_train['DOLocationID']
-df_val['PU_DO'] = df_val['PULocationID'] + '_' + df_val['DOLocationID']
-
-categorical = ['PU_DO'] #'PULocationID', 'DOLocationID']
-numerical = ['trip_distance']
-
-dv = DictVectorizer()
-
-train_dicts = df_train[categorical + numerical].to_dict(orient='records')
-X_train = dv.fit_transform(train_dicts)
-
-val_dicts = df_val[categorical + numerical].to_dict(orient='records')
-X_val = dv.transform(val_dicts)
-
-target = 'duration'
-y_train = df_train[target].values
-y_val = df_val[target].values
-
-lr = LinearRegression()
-lr.fit(X_train, y_train)
-
-y_pred = lr.predict(X_val)
-
-mean_squared_error(y_val, y_pred, squared=False)
-# 7.758715210382775
-
-with open('models/lin_reg.bin', 'wb') as f_out:
-    pickle.dump((dv, lr), f_out)
-
-with mlflow.start_run():
-
-    mlflow.set_tag("developer", "cristian")
-
-    mlflow.log_param("train-data-path", "./data/green_tripdata_2021-01.csv")
-    mlflow.log_param("valid-data-path", "./data/green_tripdata_2021-02.csv")
-
-    alpha = 0.1
-    mlflow.log_param("alpha", alpha)
-    lr = Lasso(alpha)
-    lr.fit(X_train, y_train)
-
-    y_pred = lr.predict(X_val)
-    rmse = mean_squared_error(y_val, y_pred, squared=False)
-    mlflow.log_metric("rmse", rmse)
-
-    mlflow.log_artifact(local_path="models/lin_reg.bin", artifact_path="models_pickle")
-```
+* [`duration_prediction_original.ipynb`](https://github.com/discdiver/prefect-mlops-zoomcamp/blob/main/3.3/duration_prediction_original.ipynb).
+* [`orchestrate_pre_prefect.py`](https://github.com/discdiver/prefect-mlops-zoomcamp/blob/main/3.3/orchestrate_pre_prefect.py)
 
 Here `orchestrate_pre_prefect.py`.
 
@@ -602,9 +502,21 @@ def main_flow(
 
 if __name__ == "__main__":
     main_flow()
-
 ```
 
+Download the two parquet files from [NYC TLC Trip Record Data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page) 
+and save them in the directory `prefect-mlops-zoomcamp/data`. 
+
+```bash
+cd prefect-mlops-zoomcamp
+wget -P ./data https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_2021-01.parquet
+wget -P ./data https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_2021-02.parquet
+git add .
+git commit -m "Parquet files added"
+git push -u origin main
+```
+
+Remember I'm working on a forked github repo (https://github.com/boisalai/prefect-mlops-zoomcamp).
 
 ### Review: data read-in, feature engineering, model training
 
@@ -635,7 +547,7 @@ You should get this.
     </tr>
 </table>
 
-Now, we create [orchestrate.py](https://github.com/discdiver/prefect-mlops-zoomcamp/blob/main/3.3/orchestrate.py) script in which we added Prefect decorators.
+Now, we create [`orchestrate.py`](https://github.com/discdiver/prefect-mlops-zoomcamp/blob/main/3.3/orchestrate.py) script in which we added Prefect decorators.
 
 ```python
 import pathlib
@@ -779,15 +691,13 @@ if __name__ == "__main__":
 
 > [11:42](https://www.youtube.com/watch?v=x3bV8yMKjtc&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=18&t=702s) Explanation of using caching and adding decorators in ML flow.
 
-See [Caching](https://docs.prefect.io/2.10.12/concepts/tasks/#caching).
-
-
+See [Caching](https://docs.prefect.io/2.10.12/concepts/tasks/#caching) for explanation.
 
 ### Overview of using Prefect for data flow orchestration
 
 > [14:50](https://www.youtube.com/watch?v=x3bV8yMKjtc&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=18&t=890s) Overview of using Prefect for data flow orchestration.
 
-We need to start Prefect server locally on your machine.
+Start a local Prefect server by running the following.
 
 ```bash
 conda activate prefect-ops
@@ -801,7 +711,7 @@ python 3.3/orchestrate.py
 ```
 
 You should get this.
-We have logging information in the terminal window and in the Prefect console.
+We have logging information in the terminal window and in the Prefect UI.
 
 <table>
     <tr>
@@ -814,8 +724,180 @@ We have logging information in the terminal window and in the Prefect console.
     </tr>
 </table>
 
+Finish by pushing 
+
+```bash
+git add .
+git commit -m "Push after module 3"
+git push -u origin main
+```
 
 ## 3.4 Deploying Your Workflow
+
+:movie_camera: [Youtube](https://www.youtube.com/watch?v=3YjagezFhOo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=19).
+
+Key Takeaways:
+
+* The video teaches how to deploy workflows using Prefect projects for productionizing.
+* It covers configuring the project and deployment with the pull step.
+* It explains how to deploy and run a flow with a worker pool.
+* It explores how to set up deployment from GitHub for collaboration purposes.
+* The video is suitable for anyone who wants to learn how to deploy workflows using Prefect projects and collaborate with others on GitHub.
+
+### Deploying workflow using Prefect project for productionizing
+
+> [00:00](https://www.youtube.com/watch?v=3YjagezFhOo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=19&t=0s) Deploying workflow using Prefect project for productionizing.
+
+```bash
+cd prefect-mlops-zoomcamp
+git remote -v
+```
+
+You should get something like this. 
+Remember I'm working on a forked github repo.
+
+```txt
+origin	git@github.com:boisalai/prefect-mlops-zoomcamp.git (fetch)
+origin	git@github.com:boisalai/prefect-mlops-zoomcamp.git (push)
+``` 
+
+A project is a minimally opinionated set of files that describe how to prepare one or more 
+[flow deployments](https://docs.prefect.io/concepts/deployments/). At a high level, a project is a 
+directory with the following key files stored in the root:
+
+* [`deployment.yaml`](https://docs.prefect.io/2.10.12/concepts/projects/#the-deployment-yaml-file): a YAML file describing base settings for deployments produced from this project
+* [`prefect.yaml`](https://docs.prefect.io/2.10.12/concepts/projects/#the-prefect-yaml-file): a YAML file describing procedural steps for preparing a deployment from this project, as well as instructions for preparing the execution environment for a deployment run
+* [`.prefect/`](https://docs.prefect.io/2.10.12/concepts/projects/#the-prefect-directory): a hidden directory where Prefect will store workflow metadata
+
+See [Projects](https://docs.prefect.io/2.10.12/concepts/projects/) for more.
+
+Projects can be initialized by running the CLI command `prefect project init` in any directory that you consider to be the root of a project.
+Make sure some files are deleted before
+
+```bash
+rm deployment.yaml prefect.yaml .prefectignore 
+rm -rf .prefect/
+prefect project init
+```
+
+You should get something like this.
+
+```txt
+Created project in [...]/prefect-mlops-zoomcamp with the following new files:
+.prefectignore
+deployment.yaml
+prefect.yaml
+.prefect/
+``` 
+
+The `deployment.yaml` file, the `prefect.yaml` file, the `.prefectignore` file and the `.prefect/` folder should been created.
+
+### Configuring project and deployment with pull step
+
+> [03:12](https://www.youtube.com/watch?v=3YjagezFhOo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=19&t=192s) Configuring project and deployment with pull step.
+
+Here is the `prefect.yaml` file.
+Remember I'm working on a forked github repo.
+
+```yaml
+# File for configuring project / deployment build, push and pull steps
+
+# Generic metadata about this project
+name: prefect-mlops-zoomcamp
+prefect-version: 2.10.8
+
+# build section allows you to manage and build docker images
+build: null
+
+# push section allows you to manage if and how this project is uploaded to remote locations
+push: null
+
+# pull section allows you to provide instructions for cloning this project in remote locations
+pull:
+- prefect.projects.steps.git_clone_project:
+    repository: git@github.com:boisalai/prefect-mlops-zoomcamp.git
+    branch: main
+    access_token: null
+```
+
+[Prefect 2](https://www.prefect.io/guide/blog/introducing-prefect-2-0/) introduced the concept of a [deployment](https://docs.prefect.io/concepts/deployments/), 
+which encapsulates everything Prefect knows about an instance of a flow, but getting flow code to run anywhere other than where it was written is tricky — a lot 
+of things need to be in the right place, with the right configuration, at the right time. Deployments often have critical, implicit dependencies on build 
+artifacts, such as containers, that are created and stored outside of Prefect. Each of these dependencies presents a potential stumbling block when 
+deploying a flow for remote execution — you must satisfy them for your flow to run successfully.
+
+Prefect is introducing **workers** and **projects** in beta to address this challenge.
+
+* [Workers](https://docs.prefect.io/concepts/work-pools/) are services that run in your desired execution environment, 
+where your flow code will run. Each worker manages flow run infrastructure of a specific type and must pull from a work 
+pool with a matching type. 
+* [Projects](https://docs.prefect.io/concepts/projects/) are a contract between you and a worker, specifying what you do when you create a deployment, and what the worker will do before it kicks off that deployment. 
+
+![MLOps](images/s65.png)
+
+See [Introducing Prefect Workers and Projects](https://www.prefect.io/guide/blog/introducing-prefect-workers-and-projects/) for more.
+
+Set up a work pool with a local subprocess as the infrastructure. 
+Go to the Prefect UI, and create a new **Work Pools** with the name `zoompool` and **Process** in the **Type** field.
+
+<table>
+    <tr>
+        <td>
+            <img src="images\s66.png">
+        </td>
+        <td>
+            <img src="images\s67.png">
+        </td>
+    </tr>
+</table>
+
+### Deploying and running a flow with a worker pool
+
+> [06:48](https://www.youtube.com/watch?v=3YjagezFhOo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=19&t=408s) Deploying and running a flow with a worker pool.
+
+Now, we will do **Step 5** (see previous figure) and deploy a flow from this project by creating a deployment. 
+Run the following from the project root directory.
+
+```bash
+cd prefect-mlops-zoomcamp
+prefect deploy 3.4/orchestrate.py:main_flow -n taxi1 -p zoompool 
+```
+
+You should get something like this.
+
+![MLOps](images/s68.png)
+
+Next, we will do **Step 4** (see previous figure) and start a worker that pools our work pool.
+This command should create the pool automatically if it didn't already exist.
+
+```bash
+prefect worker start -p zoompool
+```
+You should get this.
+
+![MLOps](images/s69.png)
+
+![MLOps](images/s70.png)
+
+In the Prefect UI, select **Flows** and **main-flow**. You should see **taxi1** deployment on **zoompool** work pool. 
+Click on **Quick run**.
+
+You should get something like this.
+
+<table>
+    <tr>
+        <td>
+            <img src="images\s71.png">
+        </td>
+        <td>
+            <img src="images\s72.png">
+        </td>
+    </tr>
+</table>
+
+### Setting up deployment from GitHub for collaboration
+
+> [10:23](https://www.youtube.com/watch?v=3YjagezFhOo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=19&t=623s) Setting up deployment from GitHub for collaboration.
 
 ## 3.5 Working with Deployments
 
@@ -842,7 +924,8 @@ pip install -r requirements.txt
 
 ### Start the Prefect server locally
 
-Create another window and activate your conda environment. Start the Prefect API server locally with
+Create another window and activate your conda environment. 
+Start a local Prefect server by running the following.
 
 ```bash
 prefect server start
