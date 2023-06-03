@@ -352,6 +352,469 @@ Let's take a look at the record for the parent flow called `animal-facts`.
 
 ## 3.3 Prefect Workflow
 
+:movie_camera: [Youtube](https://www.youtube.com/watch?v=x3bV8yMKjtc&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=18).
+
+Key Takeaways:
+
+* The video is about productionizing a Jupyter notebook into a Python script using Prefect
+* It covers a review of code overview and data import for an ML model, data read-in, feature engineering, and model training process
+* It also explains how to add orchestration and observability with Prefect, use caching and decorators in ML flow, and gives an overview of using Prefect for data flow orchestration
+* The video provides a comprehensive guide on how to use Prefect to productionize a Jupyter notebook into a Python script for an ML model.
+
+### Productionizing notebook into python script with Prefect
+
+> [00:00](https://www.youtube.com/watch?v=x3bV8yMKjtc&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=18&t=0s) Productionizing notebook into python script with Prefect.
+
+### Review: Code overview and data import for ML model
+
+> [03:06](https://www.youtube.com/watch?v=x3bV8yMKjtc&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=18&t=186s) Review: Code overview and data import for ML model.
+
+we review the following two codes:
+
+* [duration_prediction_original.ipynb](https://github.com/discdiver/prefect-mlops-zoomcamp/blob/main/3.3/duration_prediction_original.ipynb).
+* [orchestrate_pre_prefect.py](https://github.com/discdiver/prefect-mlops-zoomcamp/blob/main/3.3/orchestrate_pre_prefect.py)
+
+Here `duration_prediction_original.ipynb`.
+
+
+```python
+!python -V
+# Python 3.9.12
+
+import pandas as pd
+import pickle
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+from sklearn.feature_extraction import DictVectorizer
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Lasso
+from sklearn.linear_model import Ridge
+from sklearn.metrics import mean_squared_error
+
+import mlflow
+
+
+mlflow.set_tracking_uri("sqlite:///mlflow.db")
+mlflow.set_experiment("nyc-taxi-experiment")
+
+def read_dataframe(filename):
+    df = pd.read_csv(filename)
+
+    df.lpep_dropoff_datetime = pd.to_datetime(df.lpep_dropoff_datetime)
+    df.lpep_pickup_datetime = pd.to_datetime(df.lpep_pickup_datetime)
+
+    df['duration'] = df.lpep_dropoff_datetime - df.lpep_pickup_datetime
+    df.duration = df.duration.apply(lambda td: td.total_seconds() / 60)
+
+    df = df[(df.duration >= 1) & (df.duration <= 60)]
+
+    categorical = ['PULocationID', 'DOLocationID']
+    df[categorical] = df[categorical].astype(str)
+    
+    return df
+
+df_train = read_dataframe('./data/green_tripdata_2021-01.csv')
+df_val = read_dataframe('./data/green_tripdata_2021-02.csv')
+
+len(df_train), len(df_val)
+# (73908, 61921)
+
+df_train['PU_DO'] = df_train['PULocationID'] + '_' + df_train['DOLocationID']
+df_val['PU_DO'] = df_val['PULocationID'] + '_' + df_val['DOLocationID']
+
+categorical = ['PU_DO'] #'PULocationID', 'DOLocationID']
+numerical = ['trip_distance']
+
+dv = DictVectorizer()
+
+train_dicts = df_train[categorical + numerical].to_dict(orient='records')
+X_train = dv.fit_transform(train_dicts)
+
+val_dicts = df_val[categorical + numerical].to_dict(orient='records')
+X_val = dv.transform(val_dicts)
+
+target = 'duration'
+y_train = df_train[target].values
+y_val = df_val[target].values
+
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+
+y_pred = lr.predict(X_val)
+
+mean_squared_error(y_val, y_pred, squared=False)
+# 7.758715210382775
+
+with open('models/lin_reg.bin', 'wb') as f_out:
+    pickle.dump((dv, lr), f_out)
+
+with mlflow.start_run():
+
+    mlflow.set_tag("developer", "cristian")
+
+    mlflow.log_param("train-data-path", "./data/green_tripdata_2021-01.csv")
+    mlflow.log_param("valid-data-path", "./data/green_tripdata_2021-02.csv")
+
+    alpha = 0.1
+    mlflow.log_param("alpha", alpha)
+    lr = Lasso(alpha)
+    lr.fit(X_train, y_train)
+
+    y_pred = lr.predict(X_val)
+    rmse = mean_squared_error(y_val, y_pred, squared=False)
+    mlflow.log_metric("rmse", rmse)
+
+    mlflow.log_artifact(local_path="models/lin_reg.bin", artifact_path="models_pickle")
+```
+
+Here `orchestrate_pre_prefect.py`.
+
+```python
+import pathlib
+import pickle
+import pandas as pd
+import numpy as np
+import scipy
+import sklearn
+from sklearn.feature_extraction import DictVectorizer
+from sklearn.metrics import mean_squared_error
+import mlflow
+import xgboost as xgb
+from prefect import flow, task
+
+
+def read_data(filename: str) -> pd.DataFrame:
+    """Read data into DataFrame"""
+    df = pd.read_parquet(filename)
+
+    df.lpep_dropoff_datetime = pd.to_datetime(df.lpep_dropoff_datetime)
+    df.lpep_pickup_datetime = pd.to_datetime(df.lpep_pickup_datetime)
+
+    df["duration"] = df.lpep_dropoff_datetime - df.lpep_pickup_datetime
+    df.duration = df.duration.apply(lambda td: td.total_seconds() / 60)
+
+    df = df[(df.duration >= 1) & (df.duration <= 60)]
+
+    categorical = ["PULocationID", "DOLocationID"]
+    df[categorical] = df[categorical].astype(str)
+
+    return df
+
+
+def add_features(
+    df_train: pd.DataFrame, df_val: pd.DataFrame
+) -> tuple(
+    [
+        scipy.sparse._csr.csr_matrix,
+        scipy.sparse._csr.csr_matrix,
+        np.ndarray,
+        np.ndarray,
+        sklearn.feature_extraction.DictVectorizer,
+    ]
+):
+    """Add features to the model"""
+    df_train["PU_DO"] = df_train["PULocationID"] + "_" + df_train["DOLocationID"]
+    df_val["PU_DO"] = df_val["PULocationID"] + "_" + df_val["DOLocationID"]
+
+    categorical = ["PU_DO"]  #'PULocationID', 'DOLocationID']
+    numerical = ["trip_distance"]
+
+    dv = DictVectorizer()
+
+    train_dicts = df_train[categorical + numerical].to_dict(orient="records")
+    X_train = dv.fit_transform(train_dicts)
+
+    val_dicts = df_val[categorical + numerical].to_dict(orient="records")
+    X_val = dv.transform(val_dicts)
+
+    y_train = df_train["duration"].values
+    y_val = df_val["duration"].values
+    return X_train, X_val, y_train, y_val, dv
+
+
+def train_best_model(
+    X_train: scipy.sparse._csr.csr_matrix,
+    X_val: scipy.sparse._csr.csr_matrix,
+    y_train: np.ndarray,
+    y_val: np.ndarray,
+    dv: sklearn.feature_extraction.DictVectorizer,
+) -> None:
+    """train a model with best hyperparams and write everything out"""
+
+    with mlflow.start_run():
+        train = xgb.DMatrix(X_train, label=y_train)
+        valid = xgb.DMatrix(X_val, label=y_val)
+
+        best_params = {
+            "learning_rate": 0.09585355369315604,
+            "max_depth": 30,
+            "min_child_weight": 1.060597050922164,
+            "objective": "reg:linear",
+            "reg_alpha": 0.018060244040060163,
+            "reg_lambda": 0.011658731377413597,
+            "seed": 42,
+        }
+
+        mlflow.log_params(best_params)
+
+        booster = xgb.train(
+            params=best_params,
+            dtrain=train,
+            num_boost_round=100,
+            evals=[(valid, "validation")],
+            early_stopping_rounds=20,
+        )
+
+        y_pred = booster.predict(valid)
+        rmse = mean_squared_error(y_val, y_pred, squared=False)
+        mlflow.log_metric("rmse", rmse)
+
+        pathlib.Path("models").mkdir(exist_ok=True)
+        with open("models/preprocessor.b", "wb") as f_out:
+            pickle.dump(dv, f_out)
+        mlflow.log_artifact("models/preprocessor.b", artifact_path="preprocessor")
+
+        mlflow.xgboost.log_model(booster, artifact_path="models_mlflow")
+    return None
+
+
+def main_flow(
+    train_path: str = "./data/green_tripdata_2021-01.parquet",
+    val_path: str = "./data/green_tripdata_2021-02.parquet",
+) -> None:
+    """The main training pipeline"""
+
+    # MLflow settings
+    mlflow.set_tracking_uri("sqlite:///mlflow.db")
+    mlflow.set_experiment("nyc-taxi-experiment")
+
+    # Load
+    df_train = read_data(train_path)
+    df_val = read_data(val_path)
+
+    # Transform
+    X_train, X_val, y_train, y_val, dv = add_features(df_train, df_val)
+
+    # Train
+    train_best_model(X_train, X_val, y_train, y_val, dv)
+
+
+if __name__ == "__main__":
+    main_flow()
+
+```
+
+
+### Review: data read-in, feature engineering, model training
+
+> [05:59](https://www.youtube.com/watch?v=x3bV8yMKjtc&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=18&t=359s) Review: data read-in, feature engineering, model training.
+
+### Adding orchestration and observability with Prefect
+
+> [08:43](https://www.youtube.com/watch?v=x3bV8yMKjtc&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=18&t=523s) Adding orchestration and observability with Prefect.
+
+Run the following commands.
+
+```bash
+cd prefect-mlops-zoomcamp
+conda activate prefect-ops
+python 3.3/orchestrate_pre_prefect.py
+```
+
+You should get this.
+
+<table>
+    <tr>
+        <td>
+            <img src="images\s61.png">
+        </td>
+        <td>
+            <img src="images\s62.png">
+        </td>
+    </tr>
+</table>
+
+Now, we create [orchestrate.py](https://github.com/discdiver/prefect-mlops-zoomcamp/blob/main/3.3/orchestrate.py) script in which we added Prefect decorators.
+
+```python
+import pathlib
+import pickle
+import pandas as pd
+import numpy as np
+import scipy
+import sklearn
+from sklearn.feature_extraction import DictVectorizer
+from sklearn.metrics import mean_squared_error
+import mlflow
+import xgboost as xgb
+from prefect import flow, task
+
+
+@task(retries=3, retry_delay_seconds=2)
+def read_data(filename: str) -> pd.DataFrame:
+    """Read data into DataFrame"""
+    df = pd.read_parquet(filename)
+
+    df.lpep_dropoff_datetime = pd.to_datetime(df.lpep_dropoff_datetime)
+    df.lpep_pickup_datetime = pd.to_datetime(df.lpep_pickup_datetime)
+
+    df["duration"] = df.lpep_dropoff_datetime - df.lpep_pickup_datetime
+    df.duration = df.duration.apply(lambda td: td.total_seconds() / 60)
+
+    df = df[(df.duration >= 1) & (df.duration <= 60)]
+
+    categorical = ["PULocationID", "DOLocationID"]
+    df[categorical] = df[categorical].astype(str)
+
+    return df
+
+
+@task
+def add_features(
+    df_train: pd.DataFrame, df_val: pd.DataFrame
+) -> tuple(
+    [
+        scipy.sparse._csr.csr_matrix,
+        scipy.sparse._csr.csr_matrix,
+        np.ndarray,
+        np.ndarray,
+        sklearn.feature_extraction.DictVectorizer,
+    ]
+):
+    """Add features to the model"""
+    df_train["PU_DO"] = df_train["PULocationID"] + "_" + df_train["DOLocationID"]
+    df_val["PU_DO"] = df_val["PULocationID"] + "_" + df_val["DOLocationID"]
+
+    categorical = ["PU_DO"]  #'PULocationID', 'DOLocationID']
+    numerical = ["trip_distance"]
+
+    dv = DictVectorizer()
+
+    train_dicts = df_train[categorical + numerical].to_dict(orient="records")
+    X_train = dv.fit_transform(train_dicts)
+
+    val_dicts = df_val[categorical + numerical].to_dict(orient="records")
+    X_val = dv.transform(val_dicts)
+
+    y_train = df_train["duration"].values
+    y_val = df_val["duration"].values
+    return X_train, X_val, y_train, y_val, dv
+
+
+@task(log_prints=True)
+def train_best_model(
+    X_train: scipy.sparse._csr.csr_matrix,
+    X_val: scipy.sparse._csr.csr_matrix,
+    y_train: np.ndarray,
+    y_val: np.ndarray,
+    dv: sklearn.feature_extraction.DictVectorizer,
+) -> None:
+    """train a model with best hyperparams and write everything out"""
+
+    with mlflow.start_run():
+        train = xgb.DMatrix(X_train, label=y_train)
+        valid = xgb.DMatrix(X_val, label=y_val)
+
+        best_params = {
+            "learning_rate": 0.09585355369315604,
+            "max_depth": 30,
+            "min_child_weight": 1.060597050922164,
+            "objective": "reg:linear",
+            "reg_alpha": 0.018060244040060163,
+            "reg_lambda": 0.011658731377413597,
+            "seed": 42,
+        }
+
+        mlflow.log_params(best_params)
+
+        booster = xgb.train(
+            params=best_params,
+            dtrain=train,
+            num_boost_round=100,
+            evals=[(valid, "validation")],
+            early_stopping_rounds=20,
+        )
+
+        y_pred = booster.predict(valid)
+        rmse = mean_squared_error(y_val, y_pred, squared=False)
+        mlflow.log_metric("rmse", rmse)
+
+        pathlib.Path("models").mkdir(exist_ok=True)
+        with open("models/preprocessor.b", "wb") as f_out:
+            pickle.dump(dv, f_out)
+        mlflow.log_artifact("models/preprocessor.b", artifact_path="preprocessor")
+
+        mlflow.xgboost.log_model(booster, artifact_path="models_mlflow")
+    return None
+
+
+@flow
+def main_flow(
+    train_path: str = "./data/green_tripdata_2021-01.parquet",
+    val_path: str = "./data/green_tripdata_2021-02.parquet",
+) -> None:
+    """The main training pipeline"""
+
+    # MLflow settings
+    mlflow.set_tracking_uri("sqlite:///mlflow.db")
+    mlflow.set_experiment("nyc-taxi-experiment")
+
+    # Load
+    df_train = read_data(train_path)
+    df_val = read_data(val_path)
+
+    # Transform
+    X_train, X_val, y_train, y_val, dv = add_features(df_train, df_val)
+
+    # Train
+    train_best_model(X_train, X_val, y_train, y_val, dv)
+
+
+if __name__ == "__main__":
+    main_flow()
+```
+
+### Explanation of using caching and adding decorators in ML flow
+
+> [11:42](https://www.youtube.com/watch?v=x3bV8yMKjtc&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=18&t=702s) Explanation of using caching and adding decorators in ML flow.
+
+See [Caching](https://docs.prefect.io/2.10.12/concepts/tasks/#caching).
+
+
+
+### Overview of using Prefect for data flow orchestration
+
+> [14:50](https://www.youtube.com/watch?v=x3bV8yMKjtc&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=18&t=890s) Overview of using Prefect for data flow orchestration.
+
+We need to start Prefect server locally on your machine.
+
+```bash
+conda activate prefect-ops
+prefect server start
+```
+
+Now, run the flow.
+
+```bash
+python 3.3/orchestrate.py  
+```
+
+You should get this.
+We have logging information in the terminal window and in the Prefect console.
+
+<table>
+    <tr>
+        <td>
+            <img src="images\s63.png">
+        </td>
+        <td>
+            <img src="images\s64.png">
+        </td>
+    </tr>
+</table>
+
+
 ## 3.4 Deploying Your Workflow
 
 ## 3.5 Working with Deployments
