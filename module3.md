@@ -178,6 +178,22 @@ pip install -r requirements.txt
 prefect version
 ```
 
+Here, the content of the `requiements.txt` file.
+
+```txt
+black==23.3.0
+fastparquet==2023.4.0
+hyperopt==0.2.7
+mlflow==2.3.1
+pandas==2.0.1
+prefect==2.10.8
+prefect-aws==0.3.1
+scikit_learn==1.2.2
+seaborn==0.12.2
+xgboost==1.7.5
+orjson==3.8.1
+```
+
 You should see this.
 
 ```txt
@@ -901,11 +917,436 @@ git push -u origin main
 
 ## 3.5 Working with Deployments
 
+:movie_camera: [Youtube](https://www.youtube.com/watch?v=jVmaaqs63O8&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=20).
+
+Key Takeaways:
+
+* The video discusses Prefect deployments and S3 data retrieval, including creating and accessing AWS credentials and S3 bucket
+* It provides a step-by-step guide on how to create AWS credentials and S3 bucket, and how to create and save an S3 bucket object using Python code
+* The video also covers using the S3 bucket block in Prefect, creating and deploying an S3 file with a markdown artifact, customizing parameters for flow runs, and setting up schedules for deployments
+* By the end of the video, viewers will have a comprehensive understanding of using AWS credentials and S3 bucket in Prefect.
+
+### Review: Prefect deployments and S3 data retrieval explained
+
+> [00:00](https://www.youtube.com/watch?v=jVmaaqs63O8&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=20&t=0s) Review: Prefect deployments and S3 data retrieval explained.
+
+### AWS credentials block creation and S3 bucket access
+
+> [03:44](https://www.youtube.com/watch?v=jVmaaqs63O8&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=20&t=224s) AWS credentials block creation and S3 bucket access.
+
+The [`create_s3_bucket_block.py`](https://github.com/discdiver/prefect-mlops-zoomcamp/blob/main/3.5/create_s3_bucket_block.py) script below 
+creates an AWS Credentials and a S3 bucket block.
+
+```python
+import os
+
+from time import sleep
+from prefect_aws import S3Bucket, AwsCredentials
+
+
+def create_aws_creds_block():
+    # Before, set your keys in the terminal with `export AWS_ACCESS_KEY_ID=XXXXXXXXXXXXXXXXX`.
+    # See https://docs.wandb.ai/guides/track/environment-variables
+    # API secret keys should never be put in a client-side code or should be hidden.
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+
+    my_aws_creds_obj = AwsCredentials(
+        aws_access_key_id=AWS_ACCESS_KEY_ID, 
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+    )
+    my_aws_creds_obj.save(name="my-aws-creds", overwrite=True)
+
+
+def create_s3_bucket_block():
+    aws_creds = AwsCredentials.load("my-aws-creds")
+    my_s3_bucket_obj = S3Bucket(
+        bucket_name="my-first-bucket-abc", credentials=aws_creds
+    )
+    my_s3_bucket_obj.save(name="s3-bucket-example", overwrite=True)
+
+
+if __name__ == "__main__":
+    create_aws_creds_block()
+    sleep(5)
+    create_s3_bucket_block()
+```
+
+To use these blocks, we need to install [`prefect-aws`](https://github.com/PrefectHQ/prefect-aws) in your current environment.
+
+```bash
+pip install prefect-aws
+```
+
+Note that this package is already installed from [`requirements.txt`](https://github.com/discdiver/prefect-mlops-zoomcamp/blob/main/requirements.txt).
+
+See also [Coordinate and incorporate AWS in your dataflow with `prefect-aws`](https://prefecthq.github.io/prefect-aws/)
+for more information and [`prefect_aws.s3`](https://prefecthq.github.io/prefect-aws/s3/) for tasks for interacting with AWS S3 documentation.
+
+Go to **AWS Console** and **IAM Users**, click on **Add users** button. Call this user `mlops-zoom-user`,
+perhaps whatever you want that's descriptive. Click **Next** button.
+
+Select **Add user to group** and click on **Create group** button.
+Call this group `s3access`, select `AmazonS3FullAccess` and click on **Create user group** button. 
+
+So, select this `s3access` group for the new user and click on **Next** button, then click on **Create user** button.
+
+You should see this.
+
+![MLOps](images/s73.png)
+
+### Creating AWS credentials and S3 bucket
+
+> [07:15](https://www.youtube.com/watch?v=jVmaaqs63O8&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=20&t=435s) Creating AWS credentials and S3 bucket.
+
+Select `mlops-zoom-user`, select **Security credentials** tab, scroll down to **Access keys** section and click on **Create access key**.
+
+In **Access key best practices & alternatives**, select **Other** and click on **Next** Button.
+Add descripion if you want and click on **Create access key** button.
+
+Copy the access key and the secret access key for later use.
+
+### Python code creates and saves S3 bucket object
+
+> [11:14](https://www.youtube.com/watch?v=jVmaaqs63O8&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=20&t=674s) Python code creates and saves S3 bucket object.
+
+The instructor complete [`create_s3_bucket_block.py`](https://github.com/discdiver/prefect-mlops-zoomcamp/blob/main/3.5/create_s3_bucket_block.py) code then run the script.
+
+> 12:34
+
+```bash
+python 3.5/create_s3_bucket_block.py
+```
+
+> 12:54 
+
+If we go to the Prefect UI, **Blocks** console, we should see **my-aws-creds** block and **s3-bucket-example** block.
+
+> 13:47 
+
+The following command shows you all of the blocks you’ve created.
+
+```bash
+prefect block ls
+```
+
+> 14:04 
+
+The following command shows what types of blocks we have available.
+
+```bash
+prefect block type ls
+```
+### Overview of using S3 bucket block in Prefect
+
+> [14:47](https://www.youtube.com/watch?v=jVmaaqs63O8&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=20&t=887s) Overview of using S3 bucket block in Prefect.
+
+The following command register all those blocks now the server knows that block type exists.
+
+```bash
+prefect block register -m prefect_aws
+```
+
+If you go on the server (Prefect UI) and add a new block, we will have AWS credentials
+
+> 16:00 Artifacts
+
+The instructor creates [`orchestrate_s3.py`](https://github.com/DataTalksClub/mlops-zoomcamp/blob/main/03-orchestration/3.5/orchestrate_s3.py).
+
+```python
+import pathlib
+import pickle
+import pandas as pd
+import numpy as np
+import scipy
+import sklearn
+from sklearn.feature_extraction import DictVectorizer
+from sklearn.metrics import mean_squared_error
+import mlflow
+import xgboost as xgb
+from prefect import flow, task
+from prefect_aws import S3Bucket
+from prefect.artifacts import create_markdown_artifact
+from datetime import date
+
+
+@task(retries=3, retry_delay_seconds=2)
+def read_data(filename: str) -> pd.DataFrame:
+    """Read data into DataFrame"""
+    df = pd.read_parquet(filename)
+
+    df.lpep_dropoff_datetime = pd.to_datetime(df.lpep_dropoff_datetime)
+    df.lpep_pickup_datetime = pd.to_datetime(df.lpep_pickup_datetime)
+
+    df["duration"] = df.lpep_dropoff_datetime - df.lpep_pickup_datetime
+    df.duration = df.duration.apply(lambda td: td.total_seconds() / 60)
+
+    df = df[(df.duration >= 1) & (df.duration <= 60)]
+
+    categorical = ["PULocationID", "DOLocationID"]
+    df[categorical] = df[categorical].astype(str)
+
+    return df
+
+
+@task
+def add_features(
+    df_train: pd.DataFrame, df_val: pd.DataFrame
+) -> tuple(
+    [
+        scipy.sparse._csr.csr_matrix,
+        scipy.sparse._csr.csr_matrix,
+        np.ndarray,
+        np.ndarray,
+        sklearn.feature_extraction.DictVectorizer,
+    ]
+):
+    """Add features to the model"""
+    df_train["PU_DO"] = df_train["PULocationID"] + "_" + df_train["DOLocationID"]
+    df_val["PU_DO"] = df_val["PULocationID"] + "_" + df_val["DOLocationID"]
+
+    categorical = ["PU_DO"]  #'PULocationID', 'DOLocationID']
+    numerical = ["trip_distance"]
+
+    dv = DictVectorizer()
+
+    train_dicts = df_train[categorical + numerical].to_dict(orient="records")
+    X_train = dv.fit_transform(train_dicts)
+
+    val_dicts = df_val[categorical + numerical].to_dict(orient="records")
+    X_val = dv.transform(val_dicts)
+
+    y_train = df_train["duration"].values
+    y_val = df_val["duration"].values
+    return X_train, X_val, y_train, y_val, dv
+
+
+@task(log_prints=True)
+def train_best_model(
+    X_train: scipy.sparse._csr.csr_matrix,
+    X_val: scipy.sparse._csr.csr_matrix,
+    y_train: np.ndarray,
+    y_val: np.ndarray,
+    dv: sklearn.feature_extraction.DictVectorizer,
+) -> None:
+    """train a model with best hyperparams and write everything out"""
+
+    with mlflow.start_run():
+        train = xgb.DMatrix(X_train, label=y_train)
+        valid = xgb.DMatrix(X_val, label=y_val)
+
+        best_params = {
+            "learning_rate": 0.09585355369315604,
+            "max_depth": 30,
+            "min_child_weight": 1.060597050922164,
+            "objective": "reg:linear",
+            "reg_alpha": 0.018060244040060163,
+            "reg_lambda": 0.011658731377413597,
+            "seed": 42,
+        }
+
+        mlflow.log_params(best_params)
+
+        booster = xgb.train(
+            params=best_params,
+            dtrain=train,
+            num_boost_round=100,
+            evals=[(valid, "validation")],
+            early_stopping_rounds=20,
+        )
+
+        y_pred = booster.predict(valid)
+        rmse = mean_squared_error(y_val, y_pred, squared=False)
+        mlflow.log_metric("rmse", rmse)
+
+        pathlib.Path("models").mkdir(exist_ok=True)
+        with open("models/preprocessor.b", "wb") as f_out:
+            pickle.dump(dv, f_out)
+        mlflow.log_artifact("models/preprocessor.b", artifact_path="preprocessor")
+
+        mlflow.xgboost.log_model(booster, artifact_path="models_mlflow")
+
+        markdown__rmse_report = f"""# RMSE Report
+
+        ## Summary
+
+        Duration Prediction 
+
+        ## RMSE XGBoost Model
+
+        | Region    | RMSE |
+        |:----------|-------:|
+        | {date.today()} | {rmse:.2f} |
+        """
+
+        create_markdown_artifact(
+            key="duration-model-report", markdown=markdown__rmse_report
+        )
+
+    return None
+
+
+@flow
+def main_flow_s3(
+    train_path: str = "./data/green_tripdata_2021-01.parquet",
+    val_path: str = "./data/green_tripdata_2021-02.parquet",
+) -> None:
+    """The main training pipeline"""
+
+    # MLflow settings
+    mlflow.set_tracking_uri("sqlite:///mlflow.db")
+    mlflow.set_experiment("nyc-taxi-experiment")
+
+    # Load
+    s3_bucket_block = S3Bucket.load("s3-bucket-block")
+    s3_bucket_block.download_folder_to_path(from_folder="data", to_folder="data")
+
+    df_train = read_data(train_path)
+    df_val = read_data(val_path)
+
+    # Transform
+    X_train, X_val, y_train, y_val, dv = add_features(df_train, df_val)
+
+    # Train
+    train_best_model(X_train, X_val, y_train, y_val, dv)
+
+
+if __name__ == "__main__":
+    main_flow_s3()
+```
+
+The main changes are as follows.
+
+We import this library.
+
+```python
+from prefect_aws import S3Bucket
+```
+
+We load that bucket we just created in the `main_flow_s3`.
+
+```python
+s3_bucket_block = S3Bucket.load("s3-bucket-block")
+s3_bucket_block.download_folder_to_path(from_folder="data", to_folder="data")
+```
+
+### Loading local data and setting up deployment
+
+> [18:57](https://www.youtube.com/watch?v=jVmaaqs63O8&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=20&t=1137s) Loading local data and setting up deployment.
+
+Finally, we run that script with this command.
+
+```bash
+python 3.5/orchestrate_s3.py
+```
+
+> 20:45 `deployment.yaml`
+
+```yaml
+deployments:
+- name: taxi_local_data
+  entrypoint: 3.4/orchestrate.py:main_flow
+  work_pool: 
+    name: zoompool
+- name: taxi_s3_data
+  entrypoint: 3.5/orchestrate.py:main_flow_s3
+  work_pool: 
+    name: zoompool
+```
+
+### Creating and deploying S3 file with markdown artifact
+
+> [22:27](https://www.youtube.com/watch?v=jVmaaqs63O8&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=20&t=1347s) Creating and deploying S3 file with markdown artifact.
+
+Now, if we run the following command, both of these deployments will be created, the taxi local data and taxi S3 data.
+
+```bash
+prefect deploy --all
+```
+
+To report back the RMSE, we first import these libraries.
+
+```python
+from prefect.artifacts import create_markdown_artifact
+from datetime import date
+```
+
+Add we add the following code to `orchestrate_s3.py`.
+
+```python
+markdown__rmse_report = f"""# RMSE Report
+
+## Summary
+
+Duration Prediction 
+
+## RMSE XGBoost Model
+
+| Region    | RMSE |
+|:----------|-------:|
+| {date.today()} | {rmse:.2f} |
+"""
+
+create_markdown_artifact(
+    key="duration-model-report", markdown=markdown__rmse_report
+)
+```
+
+We are ready to run this.
+
+Make sure that this code is on GitHub because we still using our `prefect.yaml`
+and it's pulling dow this information every time it is running a deployment.
+
+```bash
+git add -A
+git status
+git commit -m "update for 3.5"
+git push origin main
+```
+
+### Deployment and parameter customization for flow runs
+
+> [26:32](https://www.youtube.com/watch?v=jVmaaqs63O8&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=20&t=1592s) Deployment and parameter customization for flow runs.
+
+Now, we are ready to run this.
+
+```bash
+prefect deployment run main-flow-s3/taxi_s3_data
+```
+
+Go to Prefect UI to see the job running.
+
+Go to the **Artifacts** tab, you should see the RSME Report.
+
+### Tutorial on setting up schedules for deployments
+
+> [30:13](https://www.youtube.com/watch?v=jVmaaqs63O8&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=20&t=1813s) Tutorial on setting up schedules for deployments.
+
+You can make schedules from the command line.
+You could also make them in our `deployment.yaml` when we made multiple deployments from our project.
+But we could say this.
+
+```bash
+prefect deployment set-schedule main_flow/taxi --interval 120 
+```
+
 ## 3.6 Prefect Cloud (optional)
+
+:movie_camera: [Youtube](https://www.youtube.com/watch?v=y89Ww85EUdo&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=21).
+
+Key Takeaways:
+
+* The video is a deep dive into Prefect Cloud, a cloud automation tool that simplifies the process of building, deploying, and managing workflows
+* The video provides a comprehensive review of the features of Prefect Cloud, the setup process, workspaces, security, pricing, and authentication process
+* The tutorial section walks the viewer through the process of creating and deploying Prefect blocks, connecting to and deploying on the Prefect Cloud server, 
+and using the various features of the cloud automation tool
+* The video also provides a demo of Prefect Cloud features for tracking audit information, which allows users to track and monitor workflows in real-time
+* The video is suitable for beginners and experienced users looking to learn more about Prefect Cloud and its features.
+
 
 ## 3.7 Homework
 
-Coming soon!
+See [questions](https://github.com/DataTalksClub/mlops-zoomcamp/blob/main/cohorts/2023/03-orchestration/homework.md).
 
 ## Quick setup
 
@@ -942,4 +1383,17 @@ prefect cloud login
 ```
 
 Use your [Prefect profile](https://docs.prefect.io/latest/concepts/settings/) to switch between a self-hosted server and Cloud.
+
+## Additional materials
+
+### Set up with GCP
+
+* [Complete Walkthrough to Connect your SDE to GCP with Github](https://towardsdatascience.com/complete-walkthrough-to-connect-your-sde-to-gcp-with-github-bc39eec0db9e)
+* [Creating a Virtual Machine in Google Cloud Platform](https://medium.com/google-cloud/creating-a-virtual-machine-in-google-cloud-platform-ec2d74dbbab0)
+* [Setting Up MLFlow on GCP](https://medium.com/aiguys/mlflow-on-gcp-for-experiment-tracking-151ac5ccebc7)
+* [DE Zoomcamp 1.4.1 - Setting up the Environment on Google Cloud](https://www.youtube.com/watch?v=ae-CV2KfoN0)
+
+### Selected links 
+
+* [Supercharge your Python Code with Blocks](https://medium.com/the-prefect-blog/supercharge-your-python-code-with-blocks-ca8a58128c55)
 

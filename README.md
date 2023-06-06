@@ -14,7 +14,7 @@ Syllabus
     * [mlops-zoomcamp-wandb](https://github.com/soumik12345/mlops-zoomcamp-wandb)
     * [My notes](wandb.md)
 * [Module 3](module3.md): Orchestration and ML Pipelines ([Prefect](https://www.prefect.io/), Kubeflow)
-* Module 4: Model Deployment (Flask, AWS Kinesis, AWS Lambda)
+* [Module 4](module4.md): Model Deployment (Flask, AWS Kinesis, AWS Lambda)
 * Module 5: Model Monitoring (Prometheus, Evidently, and Grafana)
 * Module 6: Best Practices (GitHub Action, Terraform)
 * Capstone Project
