@@ -177,16 +177,6 @@ prefect.yaml
 .prefect/
 ```
 
-<!--
-Upload again to GitHub.
-
-```bash
-git add .
-git commit -m "Prefect deployment files added"
-git push -u origin main
-```
--->
-
 Deploy a flow for this project by creating a deployment.
 
 ```bash
@@ -224,10 +214,10 @@ You should get something like this.
 <table>
     <tr>
         <td>
-            <img src="images\s57.png">
+            <img src="s01.png">
         </td>
         <td>
-            <img src="images\s58.png">
+            <img src="s02.png">
         </td>
     </tr>
 </table>
@@ -248,11 +238,87 @@ What’s the RMSE in the artifact to two decimal places ?
 - 15.33
 - 5.37
 
+### Answer
+
+Download the March 2023 parquet file from [NYC TLC Trip Record Data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page), 
+and save them in the directory `mlops-zoomcamp/data`.
+
+```bash
+cd mlops-zoomcamp
+wget -P ./data https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_2023-03.parquet
+```
+
+Add the following to the `03-orchestration/3.4/orchestrate.py` script.
+
+To report back the RMSE, we first import these libraries.
+
+```python
+from prefect.artifacts import create_markdown_artifact
+from datetime import date
+```
+
+Add we add the following code to `train_best_model()` function.
+
+```python
+markdown__rmse_report = f"""# RMSE Report
+
+## Summary
+
+Duration Prediction 
+
+## RMSE XGBoost Model
+
+| Region    | RMSE |
+|:----------|-------:|
+| {date.today()} | {rmse:.2f} |
+"""
+
+create_markdown_artifact(
+    key="duration-model-report", markdown=markdown__rmse_report
+)
+```
+
+Change the following.
+
+```python
+def main_flow(
+    train_path: str = "./data/green_tripdata_2023-02.parquet",
+    val_path: str = "./data/green_tripdata_2023-03.parquet",
+) -> None:
+```
+
+Make sure some files are deleted before.
+
+```bash
+cd mlops-zoomcamp
+rm deployment.yaml prefect.yaml .prefectignore 
+rm -rf .prefect/
+```
+
+Upload to GitHub.
+
+```bash
+git add .
+git commit -m "update for q4"
+git push -u origin main
+```
+
+Initialize the project, deploy a flow for this project by creating a deployment, 
+and start a worker that pulls work from the `zoompool` work pool.
+
+```bash
+cd mlops-zoomcamp
+prefect project init
+prefect deploy 03-orchestration/3.4/orchestrate.py:main_flow -n homework -p zoompool
+prefect worker start -p zoompool
+```
+
+![MLOps](s03.png)
 
 ## Q5. Emails
 
 
-It’s often helpful to be notified when something with your dataflow doesn’t work
+It’s often helpful to be notified when something with your dataflow doesn't work
 as planned. Create an email notification for to use with your own Prefect server instance.
 In your virtual environment, install the prefect-email integration with 
 
@@ -289,7 +355,28 @@ What is the name of the pre-built prefect-email task function?
 - `send_email`
 - `send_message`
 
+### Answer
 
+Follow the instructions on this page (https://prefecthq.github.io/prefect-email/).
+
+After creating and saving an `EmailServerCredentials` notification block in Prefect UI,
+I added the following code to `train_best_model()` function.
+
+```python
+from prefect import flow
+from prefect_email import EmailServerCredentials, email_send_message
+
+@flow
+def example_email_send_message_flow(email_addresses: List[str]):
+    email_server_credentials = EmailServerCredentials.load("BLOCK-NAME-PLACEHOLDER")
+    for email_address in email_addresses:
+        subject = email_send_message.with_options(name=f"email {email_address}").submit(
+            email_server_credentials=email_server_credentials,
+            subject="Example Flow Notification using Gmail",
+            msg="This proves email_send_message works!",
+            email_to=email_address,
+        )
+```
 
 ## Q6. Prefect Cloud
 
@@ -297,7 +384,7 @@ The hosted Prefect Cloud lets you avoid running your own Prefect server and
 has automations that allow you to get notifications when certain events occur
 or don’t occur. 
 
-Create a free forever Prefect Cloud account at app.prefect.cloud and connect
+Create a free forever Prefect Cloud account at [app.prefect.cloud](https://app.prefect.cloud/auth/login) and connect
 your workspace to it following the steps in the UI when you sign up. 
 
 Set up an Automation from the UI that will send yourself an email when
@@ -314,24 +401,34 @@ What is the name of the second step in the Automation creation process?
 - Actions
 - The end
 
+### Answer
 
-## Submit the results
+In your Prefect cloud workspace, select **Automations** tab.
 
-* Submit your results here: https://forms.gle/nVSYH5fGGamdY1LaA
-* You can submit your solution multiple times. In this case, only the last submission will be used
-* If your answer doesn't match options exactly, select the closest one
+Create a new automation.
 
+Under **Trigger** tab, select **Flow run state** for **Trigger Type** field, 
+select **hi** as flow, select **Completed** as Fow Run.
+Click on **Next** button.
 
-## Deadline
+Under **Actions** tab, select **Send a notification** for **Action 1**, select your block (mine is `my-email-block`).
+Click on **Next** button.
 
-The deadline for submitting is 12 June (Monday), 23:00 CEST (Berlin time). 
+Give a automation name and clock on **Save** button.
 
-After that, the form will be closed.
+If you run again `python hi_flow.py`, you should see this.
 
-
-
-8888888888888888
-
-
-
+<table>
+    <tr>
+        <td>
+            <img src="s04.png">
+        </td>
+        <td>
+            <img src="s05.png">
+        </td>
+        <td>
+            <img src="s06.png">
+        </td>
+    </tr>
+</table>
 
