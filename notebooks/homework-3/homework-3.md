@@ -424,9 +424,7 @@ If you run again `python hi_flow.py`, you should see this.
             <img src="s04.png">
         </td>
         <td>
-            <img src="s05.png">
-        </td>
-        <td>
+            <img src="s05.png"><br>
             <img src="s06.png">
         </td>
     </tr>
