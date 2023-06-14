@@ -298,10 +298,10 @@ On the right, we see a timeline of the flow run and the logs that were produced 
 <table>
     <tr>
         <td>
-            <img src="images\s57.png">
+            <img src="images/s57.png">
         </td>
         <td>
-            <img src="images\s58.png">
+            <img src="images/s58.png">
         </td>
     </tr>
 </table>
@@ -352,10 +352,10 @@ Let's take a look at the record for the parent flow called `animal-facts`.
 <table>
     <tr>
         <td>
-            <img src="images\s59.png">
+            <img src="images/s59.png">
         </td>
         <td>
-            <img src="images\s60.png">
+            <img src="images/s60.png">
         </td>
     </tr>
 </table>
@@ -555,10 +555,10 @@ You should get this.
 <table>
     <tr>
         <td>
-            <img src="images\s61.png">
+            <img src="images/s61.png">
         </td>
         <td>
-            <img src="images\s62.png">
+            <img src="images/s62.png">
         </td>
     </tr>
 </table>
@@ -732,10 +732,10 @@ We have logging information in the terminal window and in the Prefect UI.
 <table>
     <tr>
         <td>
-            <img src="images\s63.png">
+            <img src="images/s63.png">
         </td>
         <td>
-            <img src="images\s64.png">
+            <img src="images/s64.png">
         </td>
     </tr>
 </table>
@@ -851,10 +851,10 @@ Go to the Prefect UI, and create a new **Work Pools** with the name `zoompool` a
 <table>
     <tr>
         <td>
-            <img src="images\s66.png">
+            <img src="images/s66.png">
         </td>
         <td>
-            <img src="images\s67.png">
+            <img src="images/s67.png">
         </td>
     </tr>
 </table>
@@ -895,10 +895,10 @@ You should get something like this.
 <table>
     <tr>
         <td>
-            <img src="images\s71.png">
+            <img src="images/s71.png">
         </td>
         <td>
-            <img src="images\s72.png">
+            <img src="images/s72.png">
         </td>
     </tr>
 </table>
