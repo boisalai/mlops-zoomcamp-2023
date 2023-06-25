@@ -20,6 +20,6 @@ Syllabus
     * [Homework](notebooks/homework-3/)
 * [Module 4](module4.md): Model Deployment (Flask, Docker)
     * [Homework](notebooks/homework-4/)
-* Module 5: Model Monitoring (Prometheus, Evidently, and Grafana)
+* [Module 5](module5.md): Model Monitoring (Prometheus, Evidently, and Grafana)
 * Module 6: Best Practices (GitHub Action, Terraform)
 * Capstone Project
