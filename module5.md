@@ -837,7 +837,7 @@ We also create [`05-monitoring/dashboards/data_drift.json`](https://github.com/D
 
 We need to change the `docker-compose.yml`.
 
-```json
+```yaml
   grafana:
     image: grafana/grafana
     user: "472"
