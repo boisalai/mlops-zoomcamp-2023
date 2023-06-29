@@ -25,6 +25,7 @@ venv.bak/
 output/
 wandb/
 *.pkl
+*.parquet
 
 # Project
 project.md
