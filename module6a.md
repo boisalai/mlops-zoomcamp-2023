@@ -347,15 +347,83 @@ post-commit               pre-merge-commit.sample   prepare-commit-msg.sample
 
 [pre-commit](https://pre-commit.com/) is a framework for managing and maintaining multi-language pre-commit hooks.
 
-
-
-
-
 ```bash
 pwd
 which python
 pipenv install --dev pre-commit
 ```
+
+> 0:02:51 - Run pre-commit hooks for specific folder.
+
+Suppose we want pre-commit only for specific folder.
+
+```bash
+$ pwd
+/Users/boisalai/github/mlops-zoomcamp/06-best-practices/code
+$ git init
+Initialized empty Git repository in /Users/boisalai/GitHub/mlops-zoomcamp/06-best-practices/code/.git/
+$ ls -a
+.                       Makefile                model.py
+..                      Pipfile                 plan.md
+.git                    Pipfile.lock            pyproject.toml
+.gitignore              README.md               scripts
+.pre-commit-config.yaml infrastructure          tests
+.vscode                 integraton-test
+Dockerfile              lambda_function.py
+```
+
+Create `.pre-commit-config.yaml` file.
+
+```bash
+$ pre-commit sample-config > .pre-commit-config.yaml
+$ cat .pre-commit-config.yaml
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: check-added-large-files
+```
+
+Run `pre-commit install` to install pre-commit into your git hooks.
+
+```bash
+$ pre-commit install
+pre-commit installed at .git/hooks/pre-commit
+$ ls .git/hooks/
+applypatch-msg.sample     pre-commit                pre-receive.sample
+commit-msg.sample         pre-commit.sample         prepare-commit-msg.sample
+fsmonitor-watchman.sample pre-merge-commit.sample   push-to-checkout.sample
+post-update.sample        pre-push.sample           update.sample
+pre-applypatch.sample     pre-rebase.sample
+$ cat .git/hooks/pre-commit  
+```
+
+You should see this.
+
+![s90](images/s90.png)
+
+Create `.gitignore` file with this content.
+
+```bash
+__pycache__
+```
+
+After run the following commands.
+
+```bash
+$ git status
+$ git add .
+$ git commit -m "initial commit"
+```
+
+You should see this.
+
+![s91](images/s91.png)
 
 
 ## 6A.6 Makefiles and make
