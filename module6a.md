@@ -425,6 +425,25 @@ You should see this.
 
 ![s91](images/s91.png)
 
+Run the following commands to see what has changed.
+
+```bash
+$ git status
+$ git diff
+```
+
+After, run the following commands.
+
+```bash
+$ git add .
+$ git commit -m "fixes from pre-commit default hooks"
+```
+
+You should see this.
+
+![s92](images/s92.png)
+
+See https://pre-commit.com/hooks.html for more hooks
 
 ## 6A.6 Makefiles and make
 
