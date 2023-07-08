@@ -447,7 +447,7 @@ See https://pre-commit.com/hooks.html for more hooks. For example `detect-privat
 
 See also [Using isort with pre-commit](https://pycqa.github.io/isort/docs/configuration/pre-commit.html).
 
-To use isort's official pre-commit integration add the following config:
+To use isort's official pre-commit integration add the following config to the `.pre-commit-config.yaml` file.
 
 ```yaml
 # See https://pre-commit.com for more information
@@ -467,8 +467,96 @@ repos:
       name: isort (python)
 ```
 
+Let's see what this thing will do.
 
+```bash
+$ git add .pre-commit-config.yaml
+$ git commit -m "test"
+```
+
+We can also add [black pre-commit](https://black.readthedocs.io/en/stable/integrations/source_version_control.html).
+
+```yaml
+repos:
+  - repo: https://github.com/psf/black
+    rev: 22.6.0
+    hooks:
+      - id: black
+        language_version: python3.9
+```
+
+We can also add [pylint pre-commit](https://pylint.pycqa.org/en/latest/user_guide/installation/pre-commit-integration.html).
+
+```yaml
+- repo: local
+  hooks:
+    - id: pylint
+      name: pylint
+      entry: pylint
+      language: system
+      types: [python]
+      args: [
+        "-rn", # Only display messages
+        "-sn", # Don't display the score
+        "--recursive=y",
+      ]
+```
+
+We can also add [pytest pre-commit](https://stackoverflow.com/questions/64011304/running-pytest-as-a-pre-commit-hook-no-such-file-or-directory-issue).
+
+```yaml
+- repo: local
+  hooks:
+    - id: pytest-check
+      name: pytest-check
+      entry: pytest
+      language: system
+      pass_filenames: false
+      always_run: true
+      args: [
+        "tests/"
+      ]
+```
+
+Let's see what these things will do.
+
+```bash
+$ git add .pre-commit-config.yaml
+$ git commit -m "test"
+```
+
+To recap, run the following commands.
+
+```bash
+$ rm -rf .git
+$ git init
+Initialized empty Git repository in /Users/boisalai/GitHub/mlops-zoomcamp/06-best-practices/code/.git/
+$ pre-commit install
+pre-commit installed at .git/hooks/pre-commit
+$ git add .
+$ git commit -m "initial commit"
+```
+
+Unfortunately, I get this message "RuntimeError: The Poetry configuration is invalid:".
+I will correct this later.
+
+Before finish, make sure this delete `.git` folder.
+
+```bash
+$ rm -rf .git
+```
 
 ## 6A.6 Makefiles and make
+
+:movie_camera: [Youtube](https://www.youtube.com/watch?v=F6DZdvbRZQQ&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=51)
+
+To install `make` on Linux:
+
+```bash
+$ sudo apt install make
+```
+
+`make` is already installed on my MacBook Pro M1.
+
 
 ## 6A.7 Homework
