@@ -443,7 +443,31 @@ You should see this.
 
 ![s92](images/s92.png)
 
-See https://pre-commit.com/hooks.html for more hooks
+See https://pre-commit.com/hooks.html for more hooks. For example `detect-private-key` detects the presence of private keys.
+
+See also [Using isort with pre-commit](https://pycqa.github.io/isort/docs/configuration/pre-commit.html).
+
+To use isort's official pre-commit integration add the following config:
+
+```yaml
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v3.2.0
+  hooks:
+    - id: trailing-whitespace
+    - id: end-of-file-fixer
+    - id: check-yaml
+    - id: check-added-large-files
+- repo: https://github.com/pycqa/isort
+  rev: 5.11.2
+  hooks:
+    - id: isort
+      name: isort (python)
+```
+
+
 
 ## 6A.6 Makefiles and make
 
