@@ -22,5 +22,7 @@ Syllabus
     * [Homework](notebooks/homework-4/)
 * [Module 5](module5.md): Model Monitoring ([Evidently](https://www.evidentlyai.com/) and [Grafana](https://grafana.com/))
     * [Homework](notebooks/homework-5/)
-* Module 6: Best Practices (GitHub Action, Terraform)
+* Module 6: 
+    * [Part A](module6a.md): Best Practices (GitHub Action, Terraform)
+    * [Part B](module6b.md): Infrastructure-as-Code with Terraform and CI/CD with GiAtHub Actions
 * Capstone Project
