@@ -22,7 +22,8 @@ venv.bak/
 *mlflow.db*
 
 # Other
-output/
+**/output/
+**/volume/
 wandb/
 *.pkl
 *.parquet

@@ -17,12 +17,13 @@ Syllabus
         * [My notes](wandb.md)
         * [Homework](notebooks/homework-wandb/)
 * [Module 3](module3.md): Orchestration and ML Pipelines ([Prefect](https://www.prefect.io/))
-    * [Homework](notebooks/homework-3/)
+    * [Homework](notebooks/homework-3/homework.md)
 * [Module 4](module4.md): Model Deployment ([Flask](https://flask.palletsprojects.com/) and [Docker](https://www.docker.com/))
-    * [Homework](notebooks/homework-4/)
+    * [Homework](notebooks/homework-4/homework.md)
 * [Module 5](module5.md): Model Monitoring ([Evidently](https://www.evidentlyai.com/) and [Grafana](https://grafana.com/))
     * [Homework](notebooks/homework-5/)
 * Module 6: 
     * [Part A](module6a.md): Best Practices (GitHub Action, Terraform)
+    * [Homework](notebooks/homework-6/homework.md)
     * [Part B](module6b.md): Infrastructure-as-Code with Terraform and CI/CD with GiAtHub Actions
 * Capstone Project
