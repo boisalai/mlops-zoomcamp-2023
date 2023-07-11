@@ -143,7 +143,7 @@ terraform {
   backend "s3" {
     bucket  = "tf-state-mlops-zoomcamp"
     key     = "mlops-zoomcamp.tfstate"
-    region  = "eu-west-1"
+    region  = var.aws_region
     encrypt = true
   }
 }
@@ -159,27 +159,27 @@ locals {
 }
 
 module "ecr_image" {
-   source = "./modules/ecr"
-   ecr_repo_name = "${var.ecr_repo_name}_${var.project_id}"
-   account_id = local.account_id
-   lambda_function_local_path = var.lambda_function_local_path
-   docker_image_local_path = var.docker_image_local_path
+  source = "./modules/ecr"
+  ecr_repo_name = "${var.ecr_repo_name}_${var.project_id}"
+  account_id = local.account_id
+  lambda_function_local_path = var.lambda_function_local_path
+  docker_image_local_path = var.docker_image_local_path
 }
 
 module "source_kinesis_stream" {
-    source           = "./modules/kinesis"
-    stream_name      = "${var.source_stream_name}_${var.project_id}"
-    retention_period = 48
-    shard_count      = 2
-    tags             = var.project_id
+  source           = "./modules/kinesis"
+  stream_name      = "${var.source_stream_name}_${var.project_id}"
+  retention_period = 48
+  shard_count      = 2
+  tags             = var.project_id
 }
 
 module "output_kinesis_stream" {
-    source           = "./modules/kinesis"
-    stream_name      = "${var.output_kinesis_stream}_${var.project_id}"
-    retention_period = 48
-    shard_count      = 2
-    tags           = var.project_id
+  source           = "./modules/kinesis"
+  stream_name      = "${var.output_kinesis_stream}_${var.project_id}"
+  retention_period = 48
+  shard_count      = 2
+  tags           = var.project_id
 }
 
 module "s3_bucket" {
@@ -214,15 +214,14 @@ output "predictions_stream_name" {
 output "ecr_repo" {
   value = "${var.ecr_repo_name}_${var.project_id}"
 }
-``` 
+```
 
+Below, the `variables.tf` file.
 
-Below, the `variables.tf` file. 
-
-```txt
+```hcl
 variable "aws_region" {
   description = "AWS region to create resources"
-  default     = "eu-west-1"
+  default     = "ca-central-1"
 }
 
 variable "project_id" {
@@ -259,15 +258,167 @@ variable "source_stream_name" {
 }
 ```
 
+For each module `./modules/ecr`, `./modules/kinesis`, `./modules/s3` and `./modules/lambda`, we have a `main.tf` and `vars.tf` files.
+See [here](https://github.com/sejalv/mlops-zoomcamp/tree/develop/06-best-practices/code/infrastructure/modules).
+
+> [0:05:38](https://www.youtube.com/watch?v=-6scXrFcPNk&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=53&t=338s) - Create state bucket manually.
+
+We must create S3 bucket manually before running terraform commands.
+
+* Go to [AWS Management Console](https://aws.amazon.com/console/).
+* Go to **S3** section.
+* Click on **Create bucket** button.
+* Give a name to the bucket, for example `tf-state-mlops-zoomcamp`.
+* Select a region (mine is `ca-central-1`).
+* Click on **Create bucket** button.
+
+You should have this.
+
+<table>
+    <tr>
+        <td>
+            <img src="images/s93.png">
+        </td>
+        <td>
+            <img src="images/s94.png">
+        </td>
+    </tr>
+</table>
+
+> [0:27:00](https://www.youtube.com/watch?v=-6scXrFcPNk&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=53&t=1620s) - Run terraform init in week 6 best practices.
+
+```bash
+$ pwd
+.../mlops-zoomcamp/06-best-practices/code/infrastructure
+$ ls -la
+total 16
+drwxr-xr-x   6 boisalai  staff   192 10 Jul 08:14 .
+drwxr-xr-x  18 boisalai  staff   576 10 Jul 08:14 ..
+-rw-r--r--@  1 boisalai  staff  2051 10 Jul 18:51 main.tf
+drwxr-xr-x   6 boisalai  staff   192 10 Jul 08:14 modules
+-rw-r--r--   1 boisalai  staff   578 10 Jul 08:14 variables.tf
+drwxr-xr-x   4 boisalai  staff   128 10 Jul 08:14 vars
+$ terraform init
+```
+
+You should see something like this.
+
+![s95](images/s95.png)
+
+The [`terraform plan`](https://developer.hashicorp.com/terraform/cli/commands/plan) 
+command creates an execution plan, which lets you preview the changes that Terraform plans to make to your infrastructure.
+
+```bash
+$ terraform plan
+```
+
+The [`terraform apply`](https://developer.hashicorp.com/terraform/cli/commands/apply) command executes the actions proposed in a Terraform plan.
+
+```bash
+$ terraform apply
+```
+
+The [`terraform destroy`](https://developer.hashicorp.com/terraform/cli/commands/destroy) 
+command is a convenient way to destroy all remote objects managed by a particular Terraform configuration.
+
+Run `terraform destroy` when you don't need these resources.
+
+```bash
+$ terraform destroy
+```
+
+If you go to the **Amazon Kinesis** Dashboard, you should see your data streams created.
+
 ### 6B.3: Build an e2e workflow for Ride Predictions
 
-https://www.youtube.com/watch?v=JVydd1K6R7M&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=50
+:movie_camera: [Youtube](https://www.youtube.com/watch?v=JVydd1K6R7M&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=54)
 
-* TF resources for ECR, Lambda, S3
+In the last video, we learned:
+
+* how to set up terraform with minimal configuration
+* how to build some basic required blocks for our project
+* how to create a custom module
+* generate a Kinesis stream with it on AWS.
+
+In this video, we will finish setting up the rest of the pipeline that is configure S3, Lambda and ECR.
+
+> [0:00:51](https://www.youtube.com/watch?v=JVydd1K6R7M&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=54&t=51s) - Creating two Kinesis streams.
+
+Below, an extracted from `infrastructure/main.tf` file.
+
+```hcl
+# ride_events
+module "source_kinesis_stream" {
+  source           = "./modules/kinesis"
+  stream_name      = "${var.source_stream_name}_${var.project_id}"
+  retention_period = 48
+  shard_count      = 2
+  tags             = var.project_id
+}
+
+# ride_prediction
+module "output_kinesis_stream" {
+  source           = "./modules/kinesis"
+  stream_name      = "${var.output_kinesis_stream}_${var.project_id}"
+  retention_period = 48
+  shard_count      = 2
+  tags           = var.project_id
+}
+```
+
+Below, the `infrastructure/modules/kinesis/main.tf` file.
+
+```hcl
+# Create Kinesis Data Stream
+
+resource "aws_kinesis_stream" "stream" {
+  name             = var.stream_name
+  shard_count      = var.shard_count
+  retention_period = var.retention_period
+  shard_level_metrics = var.shard_level_metrics
+  tags = {
+    CreatedBy = var.tags
+  }
+}
+```
+
+See also `infrastructure/modules/kinesis/vars.tf` and `infrastructure/modules/kinesis/output.tf` files.
+
+> [0:02:14](https://www.youtube.com/watch?v=JVydd1K6R7M&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=54&t=134s) - Create S3 bucket for model artifacts.
+
+Below, an extracted from `infrastructure/main.tf` file.
+
+```hcl
+module "s3_bucket" {
+  source = "./modules/s3"
+  bucket_name = "${var.model_bucket}-${var.project_id}"
+}
+```
+
+Below, the `infrastructure/modules/s3/main.tf` file.
+
+```hcl
+resource "aws_s3_bucket" "s3_bucket" {
+  bucket = var.bucket_name
+  acl    = "private"
+}
+
+output "name" {
+  value = aws_s3_bucket.s3_bucket.bucket
+}
+```
+
+See also `infrastructure/modules/s3/vars.tf` file.
+
+See video for trickiers parts (ECR and Lamda) between 14:00 and 54:00.
+
+> [0:54:54](https://www.youtube.com/watch?v=JVydd1K6R7M&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=54&t=3294s) - Model versioning with MLFlow.
+
+Sorry. I'll stop this video here and maybe I'll come back later.
 
 ### 6B.4: Test the pipeline e2e
 
-https://www.youtube.com/watch?v=YWao0rnqVoI&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=51
+:movie_camera: [Youtube](https://www.youtube.com/watch?v=YWao0rnqVoI&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=55)
 
 * Demo: apply TF to our use-case, manually deploy data dependencies & test
 * Recap: IaC, Terraform, next steps
@@ -276,7 +427,9 @@ Additional material on understanding Terraform concepts here: [Reference Materia
 
 ## CI/CD with GitHub Actions
 
-Summary
+![ci_cd_zoomcamp](images/ci_cd_zoomcamp.png)
+
+Summary:
 
 * Automate a complete CI/CD pipeline using GitHub Actions to automatically trigger jobs to build, test, and deploy our service to Lambda for every new commit/code change to our repository.
 * The goal of our CI/CD pipeline is to execute tests, build and push container image to a registry, and update our lambda service for every commit to the GitHub repository.
@@ -289,6 +442,29 @@ https://www.youtube.com/watch?v=OMwwZ0Z_cdk&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhE
 
 * Architecture (Ride Predictions)
 * What are GitHub Workflows?
+
+#### Enjoying devops journey: CI/CD pipeline
+
+> [00:00](https://www.youtube.com/watch?v=OMwwZ0Z_cdk&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=56&t=0s) - Enjoying devops journey: CI/CD pipeline.
+
+See [`.github/workflows/cd-deploy.yml`](https://github.com/DataTalksClub/mlops-zoomcamp/blob/main/.github/workflows/cd-deploy.yml)
+and [`.github/workflows/ci-tests.yml`](https://github.com/DataTalksClub/mlops-zoomcamp/blob/main/.github/workflows/ci-tests.yml).
+
+#### Automate CI/CD pipeline for service
+
+> [00:43](https://www.youtube.com/watch?v=OMwwZ0Z_cdk&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=56&t=43s) - Automate CI/CD pipeline for service.
+
+#### Continuous delivery workflow triggered on PR merge
+
+> [01:33](https://www.youtube.com/watch?v=OMwwZ0Z_cdk&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=56&t=93s) - Continuous delivery workflow triggered on PR merge.
+
+#### Define infra, build/push, deploy lambda
+
+> [02:16](https://www.youtube.com/watch?v=OMwwZ0Z_cdk&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=56&t=136s) - Define infra, build/push, deploy lambda.
+
+#### Deploying app logic across environments
+
+> [02:55](https://www.youtube.com/watch?v=OMwwZ0Z_cdk&list=PL3MmuxUbc_hIUISrluw_A7wDSmfOhErJK&index=56&t=175s) - Deploying app logic across environments.
 
 ### 6B.6: Continuous Integration
 
