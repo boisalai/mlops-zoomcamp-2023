@@ -563,7 +563,7 @@ verify the result is correct.
 
 What's the sum of predicted durations for the test dataframe?
 
-- 10.50
+- ✅ 10.50
 - 31.51
 - 59.28
 - 81.22
