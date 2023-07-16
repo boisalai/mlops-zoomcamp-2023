@@ -2,11 +2,10 @@
 
 See [Homework](notebooks/homework-6/homework.md).
 
-
 In this homework, we'll take the ride duration prediction model that we deployed in batch mode in homework 4 and improve the 
 reliability of our code with unit and integration tests. 
 
-You'll find the starter code in the [homework]([homework/](https://github.com/DataTalksClub/mlops-zoomcamp/tree/main/cohorts/2023/06-best-practices/homework)) directory.
+You'll find the starter code in the [homework](https://github.com/DataTalksClub/mlops-zoomcamp/tree/main/cohorts/2023/06-best-practices/homework) directory.
 
 ## Q1. Refactoring
 
@@ -579,21 +578,3 @@ Run the following commands.
 $ python batch_q6.py 2022 01
 predicted mean duration: 12.671278846471523
 ```
-
-### Running the test (ungraded)
-
-The rest is ready, but we need to write a shell script for doing 
-that. 
-
-Let's do that!
-
-
-## Submit the results
-
-* Submit your results here: https://forms.gle/vi7k972SKLmpwohG8
-* It's possible that your answers won't match exactly. If it's the case, select the closest one.
-* You can submit your answers multiple times. In this case, the last submission will be used for scoring.
-
-## Deadline
-
-The deadline for submitting is 16 July (Sunday) 23:00 CEST. After that, the form will be closed.
